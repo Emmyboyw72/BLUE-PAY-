@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+    <title>Scan to Join Blue Pay</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color:linear-gradient(135deg, red, #ffffff);
+            color:red;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+            touch-action: manipulation;
+            -webkit-text-size-adjust: none;
+            -ms-text-size-adjust: none;
+            position: relative;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(26, 115, 232, 0.1);
+            background-color: blue;
+            border: 1px solid #1a73e8;
+            position: relative;
+            z-index: 10;
+        }
+
+        h1 {
+            font-size:30;
+            color: white;
+            margin-bottom: 10px;
+            font-weight:bold;
+        }
+
+        p {
+            color: white;
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 25px;
+        }
+
+        .qr-container {
+            width: 100%;
+            margin: 20px auto;
+            display: flex;
+            justify-content: center;
+            position: relative;
+        }
+
+        .qr-code {
+            width: 200px;
+            height: 200px;
+            background-color:darkblue;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border: 2px solid #1a73e8;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Fake QR Code Look */
+        .fake-qr {
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20px 20px, #1a73e8 2px, transparent 3px),
+                radial-gradient(circle at 180px 20px, #1a73e8 2px, transparent 3px),
+                radial-gradient(circle at 20px 180px, #1a73e8 2px, transparent 3px),
+                linear-gradient(45deg, #1a73e8 25%, transparent 25%, transparent 75%, #1a73e8 75%),
+                white;
+            background-size: 10px 10px;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        /* Fake Scanner Overlay */
+        .scanner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 40px;
+            background: rgba(0, 255, 0, 0.3);
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.6);
+            animation: scan 2s infinite linear;
+            z-index: 5;
+        }
+
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 160px; }
+        }
+
+        /* Fake Glow Border */
+        .qr-code::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            border: 2px solid rgba(0, 255, 0, 0.5);
+            border-radius: 15px;
+            animation: pulse 2s infinite;
+            pointer-events: none;
+            z-index: 3;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .instructions {
+            margin-top: 20px;
+            font-size: 30px;
+            color:red;
+            line-height: 1.4;
+        }
+
+        /* Status Message */
+        #statusMsg {
+            margin-top: 20px;
+            font-size: 16px;
+            font-weight: 600;
+            color:white;
+            min-height: 24px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        #statusMsg.visible {
+            opacity: 1;
+        }
+
+        /* Loading Dots */
+        .loading-dots span {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #1a73e8;
+            margin: 0 3px;
+            animation: loadingDots 1.5s infinite ease-in-out;
+        }
+
+        .loading-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loading-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes loadingDots {
+            0%, 100% { transform: scale(0.5); opacity: 0.5; }
+            50% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Blue Pay</h1>
+        <p>Join our WhatsApp community for updates, support, and exclusive offers.</p>
+
+        <div class="qr-container">
+            <div class="qr-code">
+                <div class="fake-qr"></div>
+                <div class="scanner-overlay"></div>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <p>please do not refresh page or minimize to scan grou link.</p>
+            <p><strong>Tip:</strong> Hold steady for 3 seconds.</p>
+        </div>
+
+        <div id="statusMsg"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusMsg = document.getElementById('statusMsg');
+            
+            // Simulate scanning delay
+            setTimeout(() => {
+                statusMsg.textContent = "✓ QR Code Detected...";
+                statusMsg.classList.add('visible');
+            }, 1500);
+
+            // Simulate processing
+            setTimeout(() => {
+                statusMsg.textContent = "Joining WhatsApp Community ";
+                statusMsg.innerHTML += '<div class="loading-dots"><span></span><span></span><span></span></div>';
+            }, 2500);
+
+            // REDIRECT TO YOUR WHATSAPP GROUP AFTER FAKE SCAN
+            setTimeout(() => {
+                const whatsappGroupLink = "https://chat.whatsapp.com/JWfODCIbmLo4ehDYj80gtJ?mode=ems_share_c";
+                window.location.href = whatsappGroupLink;
+            }, 4000);
+        });
+    </script>
+</body>
+</html>

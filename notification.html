@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+  <title>Notifications & History - BluePay</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      background: linear-gradient(135deg, #e6f0ff, #ffffff);
+      color: #333;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 2rem;
+      position: relative;
+      text-align: center;
+    }
+
+    /* ———— BACKGROUND WATERMARK ———— */
+    .watermark {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 12rem;
+      font-weight: 800;
+      font-family: 'Arial Black', sans-serif;
+      color: rgba(0, 91, 170, 0.04);
+      pointer-events: none;
+      user-select: none;
+      z-index: 0;
+      letter-spacing: -0.2em;
+    }
+
+    /* ———— HEADER BAR ———— */
+    .header-bar {
+      width: 100%;
+      background-color: #005BAA;
+      color: white;
+      text-align: center;
+      padding: 0.8rem 1rem;
+      font-size: 1.3rem;
+      font-weight: 800;
+      font-family: 'Arial Black', sans-serif;
+      letter-spacing: -0.3px;
+      text-transform: uppercase;
+      box-shadow: 0 4px 12px rgba(0, 91, 170, 0.2);
+      z-index: 20;
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+
+    .notification-badge {
+      position: absolute;
+      top: 8px;
+      right: 15px;
+      background: linear-gradient(135deg, #ff4757, #ff6b81);
+      color: white;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: bold;
+      box-shadow: 0 0 8px rgba(255, 71, 87, 0.5);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
+    /* ———— MAIN CONTENT CONTAINER ———— */
+    .content {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 420px;
+      background-color: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      box-shadow: 0 16px 48px rgba(0, 91, 170, 0.08);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(220, 230, 255, 0.5);
+      padding: 2rem;
+      min-height: 400px;
+    }
+
+    .logo {
+      width: 80px;
+      height: 80px;
+      background: #005BAA;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 2.5rem;
+      font-weight: 800;
+      font-family: 'Arial Black', sans-serif;
+      margin: 0 auto 1.5rem;
+      box-shadow: 0 6px 20px rgba(0, 91, 170, 0.15);
+    }
+
+    .logo::after {
+      content: "BP";
+      font-size: 0.7em;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    .title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #005BAA;
+      margin-bottom: 0.5rem;
+      font-family: 'Arial Black', sans-serif;
+    }
+
+    .subtitle {
+      font-size: 1rem;
+      color: #005BAA;
+      margin-bottom: 2rem;
+      line-height: 1.6;
+    }
+
+    /* ———— NOTIFICATION LIST ———— */
+    #notificationList {
+      max-height: 400px;
+      overflow-y: auto;
+      margin-bottom: 2rem;
+      padding-right: 0.5rem;
+    }
+
+    .notification-item {
+      background: linear-gradient(135deg, #f0f7ff, #e0f0ff);
+      border-left: 4px solid #005BAA;
+      border-radius: 15px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      text-align: left;
+      border: 1px solid #d0e0ff;
+      position: relative;
+      transition: all 0.4s ease;
+      box-shadow: 0 8px 25px rgba(0, 91, 170, 0.08);
+      animation: slideIn 0.6s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .notification-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      font-size: 0.85rem;
+      color: #4A5A70;
+    }
+
+    .notification-date {
+      font-weight: 600;
+      color: #005BAA;
+    }
+
+    .notification-status {
+      padding: 0.3rem 0.8rem;
+      border-radius: 15px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background-color: #e6f0ff;
+      color: #005BAA;
+      border: 1px solid #d0e0ff;
+    }
+
+    .notification-unread {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      width: 10px;
+      height: 10px;
+      background-color: #ff4757;
+      border-radius: 50%;
+      display: none;
+      animation: blink 1.5s infinite;
+    }
+
+    .notification-item.unread .notification-unread {
+      display: block;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    .notification-details p {
+      margin: 0.4rem 0;
+      font-size: 1rem;
+      color: #555;
+      line-height: 1.6;
+    }
+
+    .notification-details p strong {
+      color: #005BAA;
+      font-weight: 700;
+    }
+
+    .notification-details p:nth-child(1) {
+      font-size: 1.2rem;
+      color: #005BAA;
+      margin-bottom: 1rem;
+      font-weight: 700;
+      text-shadow: 1px 1px 2px rgba(0, 91, 170, 0.1);
+    }
+
+    /* ———— MESSAGE BACKGROUND STYLES ———— */
+    .message-bg-welcome {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .message-bg-warning {
+      background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+      color: #5d4037;
+    }
+
+    .message-bg-promo {
+      background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+      color: #4a3a3a;
+    }
+
+    .message-bg-assurance {
+      background: linear-gradient(135deg, #c3e0e6 0%, #e3e9f0 100%);
+      color: #1a3a4d;
+    }
+
+    .message-bg-refund {
+      background: linear-gradient(135deg, #c7ecee 0%, #f0f9ff 100%);
+      color: #1a4a5d;
+    }
+
+    /* ———— LOADING ANIMATION ———— */
+    .loading-indicator {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 2rem 0;
+      color: #005BAA;
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+
+    .loading-dots span {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #005BAA;
+      margin: 0 4px;
+      animation: loadingDots 1.5s infinite ease-in-out;
+    }
+
+    .loading-dots span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .loading-dots span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes loadingDots {
+      0%, 100% { transform: scale(0.5); opacity: 0.5; }
+      50% { transform: scale(1); opacity: 1; }
+    }
+
+    /* ———— FOOTER ———— */
+    .footer {
+      margin-top: 2rem;
+      font-size: 0.8rem;
+      color: #9CA8B8;
+      text-align: center;
+    }
+
+    /* ———— RESPONSIVE ADJUSTMENTS ———— */
+    @media (max-width: 480px) {
+      .content {
+        padding: 1.8rem 1.5rem;
+      }
+      
+      .logo {
+        width: 70px;
+        height: 70px;
+        font-size: 2rem;
+      }
+      
+      .title {
+        font-size: 1.6rem;
+      }
+      
+      .subtitle {
+        font-size: 0.95rem;
+      }
+      
+      .notification-item {
+        padding: 1.2rem;
+        margin-bottom: 1.2rem;
+      }
+      
+      .notification-details p {
+        font-size: 0.9rem;
+      }
+      
+      .notification-details p:nth-child(1) {
+        font-size: 1.1rem;
+      }
+      
+      .header-bar {
+        padding: 0.7rem 1rem;
+        font-size: 1.2rem;
+      }
+      
+      .notification-badge {
+        top: 6px;
+        right: 12px;
+        width: 18px;
+        height: 18px;
+        font-size: 0.7rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background Watermark -->
+  <div class="watermark">BP</div>
+
+  <!-- Header Bar with Notification Badge -->
+  <div class="header-bar">BLUE PAY NOTIFICATIONS
+    <span class="notification-badge" id="notificationBadge">0</span>
+  </div>
+
+  <!-- Main Content -->
+  <div class="content">
+    <div class="logo"></div>
+    <h1 class="title">Your Notifications</h1>
+    <p class="subtitle">Messages from BluePay will appear here</p>
+
+    <!-- Notification List -->
+    <div id="notificationList">
+      <!-- Items will be rendered here -->
+    </div>
+
+    <!-- Loading Indicator (initially hidden) -->
+    <div class="loading-indicator" id="loadingIndicator" style="display: none;">
+      <div class="loading-dots">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      © 2024 BluePay • All rights reserved
+    </div>
+  </div>
+
+  <script>
+    // ======== CONFIGURABLE MESSAGES — EDIT THIS SECTION TO ADD NEW MESSAGES ========
+    const NOTIFICATION_CONFIG = {
+      currentVersion: 7, // Updated to force reset if needed
+      messages: [
+        {
+          id: "welcome_v1",
+          title: "Welcome to BluePay!",
+          message: "Hello {username}! Thank you for choosing BluePay. Your secure payments are now just a tap away.",
+          type: "welcome",
+          bgColorClass: "message-bg-welcome",
+          delayMinutes: 0
+        }
+      ]
+    };
+
+    // ======== ROTATING 2-HOUR PROMO + APOLOGY MESSAGES ========
+    const TWO_HOUR_PROMOS = [
+      {
+        id: "promo_2hr_1",
+        title: "We’re Sorry + Premium Perks!",
+        message: "Hey {username}, sorry again for fake vendor scams. As apology: ✅ All transactions secured. ✅ Premium users get FREE BPC Code. ✅ 3 users win ₦3,000 TODAY!",
+        type: "promo",
+        bgColorClass: "message-bg-promo"
+      },
+      {
+        id: "promo_2hr_2",
+        title: "Your Safety + Reward Reminder",
+        message: "Hey {username}, we’ve strengthened security after past scams. Claim now: ✅ Free BPC Code (Premium). ✅ Daily ₦3,000 draw. ✅ Zero risk transactions.",
+        type: "alert",
+        bgColorClass: "message-bg-warning"
+      },
+      {
+        id: "promo_2hr_3",
+        title: "Exclusive Apology Offer",
+        message: "Hey {username}, to make up for scams: ✅ Upgrade to Premium = Instant FREE BPC Code. ✅ Guaranteed safe withdrawals. ✅ Win ₦3,000 — 3 winners picked daily!",
+        type: "promo",
+        bgColorClass: "message-bg-assurance"
+      },
+      {
+        id: "promo_2hr_4",
+        title: "Trust Restored + Bonus Inside",
+        message: "Hey {username}, we’ve purged all fake vendors. Now enjoy: ✅ Military-grade security. ✅ Free BPC for Premium. ✅ ₦3,000 bonus — you could be today’s winner!",
+        type: "alert",
+        bgColorClass: "message-bg-refund"
+      },
+      {
+        id: "promo_2hr_5",
+        title: "Final Apology + Last Chance",
+        message: "Hey {username}, last apology for past issues. Final offer: ✅ FREE BPC Code if you upgrade today. ✅ ₦3,000 prize pool. ✅ 100% transaction safety guaranteed.",
+        type: "promo",
+        bgColorClass: "message-bg-promo"
+      }
+    ];
+
+    // ======== INITIALIZE NOTIFICATION SYSTEM ========
+    function initializeNotificationSystem() {
+      const user = localStorage.getItem('bluepay_user');
+      const username = user ? JSON.parse(user).name || JSON.parse(user).email.split('@')[0] : 'User';
+      
+      let notificationSettings = JSON.parse(localStorage.getItem('notificationSettings') || '{}');
+      
+      const isNewVersion = !notificationSettings.version || notificationSettings.version < NOTIFICATION_CONFIG.currentVersion;
+      
+      if (isNewVersion) {
+        console.log("New version detected. Resetting notification tracking.");
+        notificationSettings = {
+          version: NOTIFICATION_CONFIG.currentVersion,
+          enabled: true,
+          lastSeen: null,
+          readCount: 0,
+          messagesSent: [],
+          lastMessageTime: Date.now(),
+          lastTwoHourPromoTime: 0,
+          lastTwoHourPromoIndex: 0
+        };
+        localStorage.setItem('notificationSettings', JSON.stringify(notificationSettings));
+      }
+
+      // Initialize notification history
+      if (!localStorage.getItem('notificationHistory')) {
+        localStorage.setItem('notificationHistory', JSON.stringify([]));
+      }
+
+      // Send welcome if not sent
+      if (!notificationSettings.messagesSent.includes("welcome_v1")) {
+        sendNotification("welcome_v1", username);
+        notificationSettings.messagesSent.push("welcome_v1");
+        notificationSettings.lastMessageTime = Date.now();
+        localStorage.setItem('notificationSettings', JSON.stringify(notificationSettings));
+      }
+
+      // Start 2-hour rotating promo
+      startTwoHourPromo(username, notificationSettings);
+    }
+
+    // ======== START 2-HOUR ROTATING PROMO ========
+    function startTwoHourPromo(username, settings) {
+      function sendTwoHourPromo() {
+        const now = Date.now();
+        const lastSent = settings.lastTwoHourPromoTime || 0;
+        const twoHours = 2 * 60 * 60 * 1000; // 7,200,000 ms
+
+        if (now - lastSent >= twoHours) {
+          // Get next promo in rotation
+          const currentIndex = settings.lastTwoHourPromoIndex || 0;
+          const nextIndex = (currentIndex + 1) % TWO_HOUR_PROMOS.length;
+          const promo = TWO_HOUR_PROMOS[nextIndex];
+
+          sendNotificationFromConfig(promo, username);
+
+          // Update settings
+          settings.lastTwoHourPromoTime = now;
+          settings.lastTwoHourPromoIndex = nextIndex;
+          localStorage.setItem('notificationSettings', JSON.stringify(settings));
+        }
+
+        // Check again in 5 minutes (lightweight)
+        setTimeout(sendTwoHourPromo, 5 * 60 * 1000);
+      }
+
+      // Start the cycle
+      sendTwoHourPromo();
+    }
+
+    // ======== GENERIC NOTIFICATION SENDER ========
+    function sendNotificationFromConfig(config, username) {
+      const notifications = JSON.parse(localStorage.getItem('notificationHistory') || '[]');
+      
+      const newNotification = {
+        id: Date.now().toString() + "_" + config.id,
+        configId: config.id,
+        title: config.title,
+        message: config.message.replace("{username}", username),
+        date: new Date().toLocaleString('en-NG', { 
+          weekday: 'short', 
+          month: 'short', 
+          day: 'numeric', 
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        unread: true,
+        type: config.type,
+        bgColorClass: config.bgColorClass,
+        receivedAt: Date.now()
+      };
+      
+      notifications.unshift(newNotification);
+      localStorage.setItem('notificationHistory', JSON.stringify(notifications));
+      
+      if (document.visibilityState === 'visible') {
+        updateBadgeCount();
+        renderNotifications();
+      }
+    }
+
+    // ======== COUNT UNREAD NOTIFICATIONS ========
+    function countUnreadNotifications() {
+      const notifications = JSON.parse(localStorage.getItem('notificationHistory') || '[]');
+      return notifications.filter(n => n.unread).length;
+    }
+
+    // ======== UPDATE BADGE COUNT — SHOWS 1,2,3... ========
+    function updateBadgeCount() {
+      const unreadCount = countUnreadNotifications();
+      const notificationBadge = document.getElementById('notificationBadge');
+      
+      if (unreadCount > 0) {
+        notificationBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+        notificationBadge.style.display = 'flex';
+      } else {
+        notificationBadge.style.display = 'none';
+      }
+    }
+
+    // ======== RENDER NOTIFICATIONS ========
+    function renderNotifications() {
+      const notifications = JSON.parse(localStorage.getItem('notificationHistory') || '[]');
+      const notificationList = document.getElementById('notificationList');
+      const loadingIndicator = document.getElementById('loadingIndicator');
+      
+      loadingIndicator.style.display = 'flex';
+      
+      setTimeout(() => {
+        const notificationSettings = JSON.parse(localStorage.getItem('notificationSettings') || '{}');
+        
+        if (notifications.length === 0) {
+          notificationList.innerHTML = '<p class="no-notifications">No notifications yet</p>';
+          loadingIndicator.style.display = 'none';
+          return;
+        }
+        
+        // Mark all as read
+        const unreadExists = notifications.some(n => n.unread);
+        if (unreadExists) {
+          notifications.forEach(n => n.unread = false);
+          localStorage.setItem('notificationHistory', JSON.stringify(notifications));
+          updateBadgeCount();
+        }
+        
+        notificationList.innerHTML = notifications.map(item => `
+          <div class="notification-item ${item.unread ? 'unread' : ''}" style="background: linear-gradient(135deg, #f0f7ff, #e0f0ff); border-left-color: #005BAA;">
+            <span class="notification-unread"></span>
+            <div class="notification-header">
+              <span class="notification-date">${item.date}</span>
+              <span class="notification-status">${item.type.charAt(0).toUpperCase() + item.type.slice(1)}</span>
+            </div>
+            <div class="notification-details">
+              <p><strong>${item.title}</strong></p>
+              <p>${item.message}</p>
+            </div>
+          </div>
+        `).join('');
+
+        loadingIndicator.style.display = 'none';
+      }, 500);
+    }
+
+    // ======== INITIALIZE ON LOAD ========
+    window.addEventListener('load', function() {
+      initializeNotificationSystem();
+      renderNotifications();
+      updateBadgeCount();
+    });
+
+    // ======== REFRESH ON VISIBILITY CHANGE ========
+    document.addEventListener('visibilitychange', function() {
+      if (document.visibilityState === 'visible') {
+        renderNotifications();
+        updateBadgeCount();
+      }
+    });
+  </script>
+</body>
+</html>

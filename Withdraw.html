@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>Transfer - BluePay</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+  <style>
+    :root {
+      --blue-primary: blue;
+      --blue-dark: blue;
+      --white: #ffffff;
+      --text-gray: #333333;
+      --border-gray: #dce0e6;
+      --success: #28a745;
+      --danger: #dc3545;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    body {
+      background-color: var(--white);
+      color: var(--text-gray);
+      min-height: 100vh;
+      font-size: 1rem;
+      position: relative;
+      touch-action: manipulation;
+      -webkit-text-size-adjust: none;
+      -ms-text-size-adjust: none;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 1.5rem;
+      background-color:blue;
+      color: white;
+      position: relative;
+      z-index: 10;
+    }
+
+    .back-btn {
+      color: white;
+      font-size: 1.5rem;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .page-title {
+      font-weight:bold;
+      font-size: 1.5rem;
+    }
+
+    .transfer-container {
+      padding: 1.5rem;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: var(--blue-primary);
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 1rem;
+      border: 2px solid blue;
+      border-radius: 12px;
+      font-size: 1rem;
+      background-color: #f8f9ff;
+      transition: border-color 0.3s;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--blue-primary);
+      background-color: white;
+    }
+
+    select.form-input {
+      appearance: none;
+      background-image: url("image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%231a73e8' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+      background-size: 20px;
+      background-color: white;
+    }
+
+    .bpc-code-container {
+      display: none;
+      margin-top: 1rem;
+      padding: 1.5rem;
+      background-color: #eef2ff;
+      border-radius: 12px;
+      border: 2px solid blue;
+    }
+
+    .bpc-code-container.active {
+      display: block;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 1rem;
+      background-color: var(--blue-primary);
+      color: white;
+      border: none;
+      border-radius: 16px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .btn:hover {
+      background-color: var(--blue-dark);
+    }
+
+    .btn:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+
+    .balance-display {
+      text-align: center;
+      padding: 1rem;
+      background-color: blue;
+      color: white;
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+      font-weight: 600;
+    }
+
+    /* LOADER */
+    .loader-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255, 255, 255, 0.95);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      display: none;
+    }
+
+    .loader-text {
+      font-size: 2rem;
+      font-weight: bold;
+      color: var(--blue-primary);
+      letter-spacing: 4px;
+      margin-bottom: 1rem;
+      font-family: monospace;
+    }
+
+    .loader-dots {
+      display: flex;
+      gap: 4px;
+    }
+
+    .loader-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color:blue;
+      animation: bounce 1.4s infinite ease-in-out;
+    }
+
+    .loader-dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .loader-dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    /* RESULT SCREENS */
+    .result-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255, 255, 255, 0.98);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+      padding: 2rem;
+      text-align: center;
+      display: none;
+    }
+
+    .result-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      font-weight: bold;
+    }
+
+    .result-success .result-icon {
+      color: var(--success);
+    }
+
+    .result-error .result-icon {
+      color: var(--danger);
+    }
+
+    .result-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .result-message {
+      font-size: 1rem;
+      margin-bottom: 2rem;
+      color: #555;
+      line-height: 1.5;
+    }
+
+    .result-btn {
+      padding: 0.8rem 2rem;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 1rem;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .result-success .result-btn {
+      background-color: var(--success);
+      color: white;
+    }
+
+    .result-error .result-btn {
+      background-color: var(--danger);
+      color: white;
+    }
+
+    .result-btn:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+
+    /* Prevent text selection */
+    .btn, .form-input {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+    /* Prevent accidental zoom */
+    body {
+      -webkit-text-size-adjust: none;
+      -ms-text-size-adjust: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="back-btn" onclick="window.history.back()">←</div>
+    <div class="page-title">WITHRAW MONEY</div>
+    <div style="width: 24px;"></div> <!-- Spacer -->
+  </div>
+
+  <div class="transfer-container">
+    <div class="balance-display">
+      Available Balance: ₦<span id="currentBalance">50,000.00</span>
+    </div>
+
+    <form id="transferForm">
+      <div class="form-group">
+        <label class="form-label" for="accountNumber">Account Number</label>
+        <input type="text" id="accountNumber" class="form-input" placeholder="Enter recipient account number" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="bankName">Bank Name</label>
+        <select id="bankName" class="form-input" required>
+          <option value="">Select Bank</option>
+          <option value="Access Bank">Access Bank</option>
+          <option value="GTBank">GTBank</option>
+          <option value="First Bank">First Bank</option>
+          <option value="Zenith Bank">Zenith Bank</option>
+          <option value="UBA">UBA</option>
+          <option value="Fidelity Bank">Fidelity Bank</option>
+           <option value="opay bank plc">opay Bank plc</option>
+            <option value="palmpay">palmpay</option>
+          <option value="Wema Bank">Wema Bank</option>
+          <option value="Sterling Bank">Sterling Bank</option>
+          <option value="FCMB">FCMB</option>
+          <option value="Union Bank">Union Bank</option>
+          <option value="Keystone Bank">Keystone Bank</option>
+          <option value="Polaris Bank">Polaris Bank</option>
+          <option value="Stanbic IBTC">Stanbic IBTC</option>
+          <option value="Providus Bank">Providus Bank</option>
+          <option value="Titan Trust Bank">Titan Trust Bank</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="accountName">Account Name</label>
+        <input type="text" id="accountName" class="form-input" placeholder="Enter recipient account name" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="amount">Amount (₦)</label>
+        <input type="number" id="amount" class="form-input" placeholder="Enter amount to transfer" min="1" required>
+      </div>
+
+      <!-- BPC Code Container -->
+      <div class="bpc-code-container" id="bpcCodeContainer">
+        <div class="form-group">
+          <label class="form-label" for="bpcCode">BPC Code (Required)</label>
+          <input type="password" id="bpcCode" class="form-input" placeholder="Enter BPC Code">
+        </div>
+      </div>
+
+      <button type="submit" class="btn" id="transferBtn">Continue withdrawal</button>
+    </form>
+  </div>
+
+  <!-- LOADER -->
+  <div class="loader-container" id="loader">
+    <div class="loader-text">BP BP</div>
+    <div class="loader-dots">
+      <div class="loader-dot"></div>
+      <div class="loader-dot"></div>
+      <div class="loader-dot"></div>
+    </div>
+  </div>
+
+  <!-- SUCCESS SCREEN -->
+  <div class="result-screen result-success" id="successScreen">
+    <div class="result-icon">✓</div>
+    <div class="result-title">Transfer Successful!</div>
+    <div class="result-message">Your money has been sent successfully. Redirecting to dashboard...</div>
+    <button class="result-btn" id="successBtn">OK</button>
+  </div>
+
+  <!-- ERROR SCREEN -->
+  <div class="result-screen result-error" id="errorScreen">
+    <div class="result-icon">×</div>
+    <div class="result-title">Transfer Failed</div>
+    <div class="result-message">Invalid BPC Code. Please contact customer service for assistance.</div>
+    <button class="result-btn" id="errorBtn">Contact Customer Service</button>
+  </div>
+
+  <script>
+    // ======== FORMAT DATE TIME ========
+    function formatDateTime() {
+      const now = new Date();
+      const options = { 
+        weekday: 'short', 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZoneName: 'short'
+      };
+      return new Intl.DateTimeFormat('en-NG', options).format(now).replace(/,\s*$/, '');
+    }
+
+    // ======== LOAD USER & BALANCE FROM LOCALSTORAGE ========
+    function loadUserAndBalance() {
+      const user = localStorage.getItem('bluepay_user');
+      const balance = localStorage.getItem('bluepay_balance');
+
+      if (!user) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      if (balance) {
+        document.getElementById('currentBalance').textContent = balance;
+      } else {
+        document.getElementById('currentBalance').textContent = '50,000.00';
+      }
+    }
+
+    // ======== VALIDATE BPC CODE ========
+    function validateBPCCode(code) {
+      return code.trim().toUpperCase() === 'EMMYBOY';
+    }
+
+    // ======== SHOW/HIDE BPC CODE CONTAINER ========
+    function toggleBPCContainer(show) {
+      const container = document.getElementById('bpcCodeContainer');
+      if (show) {
+        container.classList.add('active');
+      } else {
+        container.classList.remove('active');
+      }
+    }
+
+    // ======== SHOW/HIDE LOADER ========
+    function toggleLoader(show) {
+      document.getElementById('loader').style.display = show ? 'flex' : 'none';
+    }
+
+    // ======== SHOW RESULT SCREEN ========
+    function showResultScreen(isSuccess) {
+      if (isSuccess) {
+        document.getElementById('successScreen').style.display = 'flex';
+      } else {
+        document.getElementById('errorScreen').style.display = 'flex';
+      }
+    }
+
+    // ======== HIDE ALL SCREENS ========
+    function hideAllScreens() {
+      toggleLoader(false);
+      document.getElementById('successScreen').style.display = 'none';
+      document.getElementById('errorScreen').style.display = 'none';
+    }
+
+    // ======== UPDATE BALANCE ========
+    function updateBalance(amount) {
+      const currentBalanceStr = localStorage.getItem('bluepay_balance') || '50,000.00';
+      const currentBalance = parseFloat(currentBalanceStr.replace(/,/g, ''));
+      const newBalance = currentBalance - amount;
+      
+      if (newBalance < 0) {
+        return false;
+      }
+      
+      const formattedBalance = newBalance.toLocaleString('en-NG', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+      
+      localStorage.setItem('bluepay_balance', formattedBalance);
+      document.getElementById('currentBalance').textContent = formattedBalance;
+      return true;
+    }
+
+    // ======== ADD TRANSACTION TO HISTORY (localStorage only) ========
+    function addTransaction(amount, accountName, bank, type = 'transfer') {
+      const transaction = {
+        id: Date.now().toString(),
+        amount: parseFloat(amount),
+        accountName: accountName || 'Unknown recipient',
+        bank: bank || 'Unknown bank',
+        date: formatDateTime(),
+        type: type,
+        timestamp: new Date().toISOString()
+      };
+
+      const transactions = JSON.parse(localStorage.getItem('transactionHistory') || '[]');
+      transactions.unshift(transaction);
+
+      if (transactions.length > 50) transactions.length = 50;
+
+      localStorage.setItem('transactionHistory', JSON.stringify(transactions));
+
+      let count = parseInt(localStorage.getItem('notificationCount') || '0');
+      count++;
+      localStorage.setItem('notificationCount', count.toString());
+    }
+
+    // ======== HANDLE FORM SUBMISSION ========
+    document.getElementById('transferForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const accountNumber = document.getElementById('accountNumber').value.trim();
+      const bankName = document.getElementById('bankName').value;
+      const accountName = document.getElementById('accountName').value.trim();
+      const amount = parseFloat(document.getElementById('amount').value);
+      const bpcCode = document.getElementById('bpcCode').value;
+
+      // Validate fields
+      if (!accountNumber || !bankName || !accountName || !amount || isNaN(amount)) {
+        alert('Please fill all fields correctly.');
+        return;
+      }
+
+      if (amount <= 0) {
+        alert('Please enter a valid amount.');
+        return;
+      }
+
+      // Show BPC field if not visible
+      if (!document.getElementById('bpcCodeContainer').classList.contains('active')) {
+        toggleBPCContainer(true);
+        document.getElementById('transferBtn').textContent = 'Confirm Transfer';
+        return;
+      }
+
+      // Show loader
+      toggleLoader(true);
+
+      // Simulate backend delay
+      setTimeout(() => {
+        if (!validateBPCCode(bpcCode)) {
+          hideAllScreens();
+          showResultScreen(false); // Show error screen
+          return;
+        }
+
+        const hasSufficientFunds = updateBalance(amount);
+        if (!hasSufficientFunds) {
+          hideAllScreens();
+          alert('Insufficient funds for this transfer.');
+          return;
+        }
+
+        // Record transaction
+        addTransaction(amount, accountName, bankName, 'transfer');
+
+        // Show success
+        hideAllScreens();
+        showResultScreen(true);
+
+        // Auto redirect after 2 seconds
+        setTimeout(() => {
+          window.location.href = 'dashboard.html';
+        }, 2000);
+      }, 1800);
+    });
+
+    // ======== BUTTON EVENT LISTENERS ========
+    document.getElementById('successBtn').addEventListener('click', function() {
+      window.location.href = 'dashboard.html';
+    });
+
+    document.getElementById('errorBtn').addEventListener('click', function() {
+      window.location.href = 'mailto:bluepay863@gmail.com';
+    });
+
+    // ======== INIT ON PAGE LOAD ========
+    document.addEventListener('DOMContentLoaded', () => {
+      loadUserAndBalance();
+    });
+  </script>
+</body>
+</html>

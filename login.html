@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <meta name="format-detection" content="telephone=no">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Login - BluePay</title>
+  <style>
+    :root {
+      --blue-primary: #1a73e8;
+      --blue-dark: #0d47a1;
+      --white: #ffffff;
+      --text-gray: #333333;
+      --border-gray: #dce0e6;
+      --success-green: #28a745;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #e6f0ff, #ffffff);
+      color: var(--text-gray);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      touch-action: manipulation;
+      -webkit-text-size-adjust: 100%;
+      -moz-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+      overflow-x: hidden;
+    }
+
+    .container {
+      background-color: var(--white);
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 12px 40px rgba(26, 115, 232, 0.18);
+      width: 100%;
+      max-width: 440px;
+      text-align: center;
+      border: 1px solid rgba(26, 115, 232, 0.2);
+    }
+
+    h1 {
+      color: var(--blue-primary);
+      margin-bottom: 32px;
+      font-weight: 800;
+      font-size: 2rem;
+      font-family: 'Arial Black', sans-serif;
+      letter-spacing: -0.5px;
+    }
+
+    input {
+      width: 100%;
+      padding: 18px;
+      margin: 16px 0;
+      border: 1px solid var(--border-gray);
+      border-radius: 14px;
+      font-size: 16px;
+      box-sizing: border-box;
+      font-family: inherit;
+      transition: all 0.3s ease;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--blue-primary);
+      box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.25);
+    }
+
+    button {
+      background: linear-gradient(135deg, var(--blue-primary), var(--blue-dark));
+      color: white;
+      border: none;
+      padding: 16px 24px;
+      border-radius: 14px;
+      font-size: 17px;
+      cursor: pointer;
+      margin: 18px 0;
+      width: 100%;
+      font-weight: 700;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(26, 115, 232, 0.3);
+    }
+
+    button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(26, 115, 232, 0.4);
+    }
+
+    .google-btn {
+      background: white;
+      color: var(--blue-primary);
+      border: 2px solid var(--border-gray);
+      margin-top: 12px;
+      font-weight: 700;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .google-btn:hover {
+      background-color: #f8f9ff;
+      border-color: #c0c0c0;
+    }
+
+    .signup-link {
+      margin-top: 28px;
+      color: var(--blue-primary);
+      text-decoration: none;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .signup-link:hover {
+      text-decoration: underline;
+    }
+
+    .forgot-password {
+      margin-top: 15px;
+      color: var(--blue-primary);
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .forgot-password:hover {
+      text-decoration: underline;
+    }
+
+    /* Alert Overlay */
+    .alert-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+    }
+
+    .alert {
+      position: relative;
+      background: linear-gradient(135deg, #ffffff, #f0f7ff);
+      color: var(--blue-dark);
+      padding: 50px 40px;
+      border-radius: 28px;
+      box-shadow: 0 25px 70px rgba(26, 115, 232, 0.3);
+      border: 1px solid rgba(26, 115, 232, 0.2);
+      text-align: center;
+      font-size: 17px;
+      animation: fadeInUp 0.6s ease-out;
+      max-width: 90%;
+      font-family: inherit;
+      border-left: 6px solid var(--blue-primary);
+    }
+
+    .alert h2 {
+      margin: 0 0 24px 0;
+      color: white;
+      background: linear-gradient(135deg, var(--blue-primary), var(--blue-dark));
+      padding: 20px 30px;
+      border-radius: 18px;
+      font-size: 1.8rem;
+      font-weight: 800;
+      box-shadow: 0 5px 20px rgba(26, 115, 232, 0.25);
+      letter-spacing: -0.5px;
+    }
+
+    .alert p {
+      margin: 0 0 30px 0;
+      line-height: 1.7;
+      color: #444;
+      font-size: 18px;
+      font-weight: 500;
+    }
+
+    .alert strong {
+      color: var(--blue-primary);
+      font-weight: 700;
+    }
+
+    .alert-button {
+      background: linear-gradient(135deg, var(--blue-primary), var(--blue-dark));
+      color: white;
+      border: none;
+      padding: 18px 40px;
+      border-radius: 14px;
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: 700;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 15px rgba(26, 115, 232, 0.3);
+    }
+
+    .alert-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 7px 20px rgba(26, 115, 232, 0.4);
+    }
+
+    /* Loader Spinner */
+    .loader {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(26, 115, 232, 0.2);
+      border-radius: 50%;
+      border-top-color: var(--blue-primary);
+      border-bottom-color: var(--blue-primary);
+      animation: spin 1s ease-in-out infinite;
+      margin: 24px auto 30px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translate(-50%, -60%) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+      }
+    }
+
+    /* Loading Screen */
+    .loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.95);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+      backdrop-filter: blur(3px);
+    }
+
+    .loading-screen h3 {
+      color: var(--blue-primary);
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    /* Prevent zooming */
+    body {
+      touch-action: manipulation;
+    }
+
+    html {
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -khtml-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      touch-action: manipulation;
+    }
+
+    input, textarea, select {
+      font-size: 16px !important;
+      touch-action: manipulation;
+    }
+
+    body {
+      overscroll-behavior: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Welcome Back to BluePay</h1>
+
+    <input type="email" id="email" placeholder="Email Address" required autocomplete="email" />
+    <input type="password" id="password" placeholder="Password" required autocomplete="current-password" />
+
+    <button id="loginBtn">Log In</button>
+
+    <button class="google-btn" id="googleBtn">Continue with Google</button>
+
+    <p><a href="#" class="forgot-password">Forgot Password?</a></p>
+    <p><a href="signup.html" class="signup-link">Don't have an account? Sign up</a></p>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/12.2.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.2.1/firebase-auth-compat.js"></script>
+
+  <script>
+    // Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyCusJ_rFuOWwy1QFZedtyJr7igCeiIg3a0",
+      authDomain: "my-sign-up-and-login.firebaseapp.com",
+      projectId: "my-sign-up-and-login",
+      storageBucket: "my-sign-up-and-login.firebasestorage.app",
+      messagingSenderId: "1009128333653",
+      appId: "1:1009128333653:web:15c1609ca3fbd4720c0fdc",
+      measurementId: "G-2SS5J1Y13C"
+    };
+
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    // Check if user is already logged in
+    auth.onAuthStateChanged(function(user) {
+      if (user && localStorage.getItem('bluepay_registered')) {
+        // Redirect to dashboard if already logged in
+        showLoadingScreen("Redirecting to your dashboard...");
+        setTimeout(() => {
+          window.location.href = "dashboard.html";
+        }, 1500);
+      }
+    });
+
+    // Login Button Event
+    document.getElementById('loginBtn').addEventListener('click', function() {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      // Validation
+      if (!email || !password) {
+        showBeautifulAlert(
+          "Missing Information",
+          "Please enter both your email and password.",
+          "OK"
+        );
+        return;
+      }
+
+      // Show loading screen
+      showLoadingScreen("Logging you in...");
+
+      // Attempt to log in
+      auth.signInWithEmailAndPassword(email, password)
+        .then(function(userCredential) {
+          // Check if this is a registered BluePay user
+          if (!localStorage.getItem('bluepay_registered')) {
+            // This user exists in Firebase but not in our BluePay system
+            // Let's create a BluePay account for them with the ₦50,000 bonus
+            const userData = {
+              name: userCredential.user.displayName || userCredential.user.email.split('@')[0],
+              email: userCredential.user.email,
+              uid: userCredential.user.uid,
+              balance: 50000.00, // ₦50,000 welcome bonus
+              signupDate: new Date().toISOString()
+            };
+
+            localStorage.setItem('bluepay_registered', 'true');
+            localStorage.setItem('bluepay_user', JSON.stringify(userData));
+            localStorage.setItem('bluepay_balance', '50000.00');
+            localStorage.setItem('bluepay_uid', userCredential.user.uid);
+
+            showBeautifulAlert(
+              "Welcome to BluePay!",
+              `You've received a ₦50,000 welcome bonus!<br>Redirecting to your dashboard...`,
+              "OK",
+              () => {
+                setTimeout(() => {
+                  window.location.href = "dashboard.html";
+                }, 1000);
+              }
+            );
+          } else {
+            // Regular login - redirect to dashboard
+            setTimeout(() => {
+              window.location.href = "dashboard.html";
+            }, 1500);
+          }
+        })
+        .catch(function(error) {
+          hideLoadingScreen();
+          
+          let title = "Login Failed";
+          let msg = "Please check your credentials and try again.";
+          
+          if (error.code === "auth/user-not-found") {
+            title = "Account Not Found";
+            msg = "No account found with this email address.<br>Please sign up for a new account.";
+          } else if (error.code === "auth/wrong-password") {
+            msg = "Incorrect password. Please try again.";
+          } else if (error.code === "auth/invalid-email") {
+            msg = "Please enter a valid email address.";
+          } else if (error.code === "auth/user-disabled") {
+            msg = "This account has been disabled. Please contact support.";
+          } else if (error.code === "auth/network-request-failed") {
+            msg = "Network error. Please check your connection and try again.";
+          }
+
+          showBeautifulAlert(title, msg, "Try Again", () => {
+            document.getElementById('loginBtn').disabled = false;
+            document.getElementById('loginBtn').textContent = "Log In";
+          });
+        });
+    });
+
+    // Google Sign In Button
+    document.getElementById('googleBtn').addEventListener('click', function() {
+      showBeautifulAlert(
+        "Feature Coming Soon",
+        "Google sign-in is not available yet.<br>Please log in with your email and password.",
+        "OK"
+      );
+    });
+
+    // Forgot Password
+    document.querySelector('.forgot-password').addEventListener('click', function(e) {
+      e.preventDefault();
+      showBeautifulAlert(
+        "Feature Coming Soon",
+        "Password reset functionality is not available yet.<br>Please contact support for assistance.",
+        "OK"
+      );
+    });
+
+    // Alert Function
+    function showBeautifulAlert(title, message, buttonText, callback) {
+      // Create overlay
+      const overlay = document.createElement('div');
+      overlay.className = 'alert-overlay';
+      
+      // Create alert
+      const alertDiv = document.createElement('div');
+      alertDiv.className = 'alert';
+      alertDiv.innerHTML = `
+        <h2>${title}</h2>
+        <p>${message}</p>
+        <button class="alert-button">${buttonText}</button>
+      `;
+      
+      // Add to DOM
+      overlay.appendChild(alertDiv);
+      document.body.appendChild(overlay);
+
+      // Add click event
+      const button = alertDiv.querySelector('.alert-button');
+      button.addEventListener('click', function() {
+        document.body.removeChild(overlay);
+        if (callback) callback();
+      });
+      
+      // Close on overlay click (outside the alert)
+      overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) {
+          document.body.removeChild(overlay);
+          if (callback) callback();
+        }
+      });
+    }
+
+    // Loading Screen Functions
+    function showLoadingScreen(message = "Please wait...") {
+      // Disable button
+      document.getElementById('loginBtn').disabled = true;
+      document.getElementById('loginBtn').textContent = "Processing...";
+
+      // Create loading screen
+      const loadingScreen = document.createElement('div');
+      loadingScreen.className = 'loading-screen';
+      loadingScreen.id = 'loadingScreen';
+      loadingScreen.innerHTML = `
+        <div class="loader"></div>
+        <h3>${message}</h3>
+      `;
+      
+      document.body.appendChild(loadingScreen);
+    }
+
+    function hideLoadingScreen() {
+      const loadingScreen = document.getElementById('loadingScreen');
+      if (loadingScreen) {
+        document.body.removeChild(loadingScreen);
+      }
+      
+      // Re-enable button
+      document.getElementById('loginBtn').disabled = false;
+      document.getElementById('loginBtn').textContent = "Log In";
+    }
+  </script>
+
+</body>
+</html>

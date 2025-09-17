@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>Profile - BluePay</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+  <style>
+    :root {
+      --blue-primary: #1a73e8;
+      --blue-dark: #1557b0;
+      --white: #ffffff;
+      --text-gray: #333333;
+      --border-gray: #dce0e6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    body {
+      background-color: var(--white);
+      color: var(--text-gray);
+      min-height: 100vh;
+      font-size: 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem 4rem;
+      position: relative;
+      touch-action: manipulation;
+      -webkit-text-size-adjust: none;
+      -ms-text-size-adjust: none;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 1.5rem;
+      background-color:blue;
+      color: white;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 10;
+    }
+
+    .back-btn {
+      color: white;
+      font-size:0.92rem;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .page-title {
+      font-weight:bold;
+      font-size: 1.2rem;
+    }
+
+    /* Avatar Container */
+    .avatar-container {
+      margin: 80px 0 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background-color:blue;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(26, 115, 232, 0.2);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .avatar svg {
+      width:100px;
+      height: 100px;
+    }
+
+    .username-display {
+      margin-top: 1rem;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color:blue;
+      text-align: center;
+    }
+
+    .email-display {
+      margin-top: 0.5rem;
+      font-size: 0.95rem;
+      color:blue;
+      text-align: center;
+      background-color:lightblue;
+      padding: 0.5rem 1rem;
+      border-radius: 12px;
+      border: 1px solid #d0e0ff;
+    }
+
+    /* Promo Section */
+    .promo-section {
+      width: 100%;
+      max-width: 400px;
+      margin: 2rem 0;
+      padding: 1.5rem;
+      background-color:blue;
+      border-radius: 16px;
+      border:blue;
+    }
+
+    .promo-title {
+      font-weight:bold;
+      color:white;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    .promo-link-container {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .promo-link {
+      flex: 1;
+      padding: 0.8rem;
+      background-color: white;
+      border: 1px solid #d0e0ff;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      color:blue;
+      word-break: break-all;
+      text-align: center;
+    }
+
+    .copy-btn {
+      padding: 0.8rem 1rem;
+      background-color: var(--blue-primary);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .copy-btn:hover {
+      background-color:darkblue;
+    }
+
+    /* Alert */
+    .alert {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      background-color: #eef2ff;
+      border: 2px solid var(--blue-primary);
+      color: var(--blue-primary);
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(26, 115, 232, 0.2);
+      z-index: 100;
+      opacity: 0;
+      transition: opacity 0.3s;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .alert.show {
+      opacity: 1;
+    }
+
+    /* Prevent zoom */
+    body {
+      -webkit-text-size-adjust: none;
+      -ms-text-size-adjust: none;
+    }
+
+    /* Prevent selection */
+    .copy-btn, .back-btn {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="back-btn" onclick="window.location.href='dashboard.html'">←</div>
+    <div class="page-title">My Profile</div>
+    <div style="width: 24px;"></div> <!-- Spacer -->
+  </div>
+
+  <!-- Avatar & Info -->
+  <div class="avatar-container">
+    <div class="avatar">
+      <!-- Facebook-style default avatar -->
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white">
+        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+      </svg>
+    </div>
+    <div class="username-display" id="displayedUsername">Loading...</div>
+    <div class="email-display" id="userEmail">Loading email...</div>
+  </div>
+
+  <!-- Promo Section -->
+  <div class="promo-section">
+    <div class="promo-title">Your Personal Promo Link</div>
+    <div class="promo-link-container">
+      <div class="promo-link" id="promoLink">https://loading.com</div>
+      <button class="copy-btn" id="copyBtn">Copy</button>
+    </div>
+  </div>
+
+  <!-- Alert -->
+  <div class="alert" id="alert">Message</div>
+
+  <script>
+    // ======== SHOW ALERT ========
+    function showAlert(message) {
+      const alert = document.getElementById('alert');
+      alert.textContent = message;
+      alert.classList.add('show');
+      
+      setTimeout(() => {
+        alert.classList.remove('show');
+      }, 3000);
+    }
+
+    // ======== COPY TO CLIPBOARD ========
+    document.getElementById('copyBtn').addEventListener('click', function() {
+      const link = document.getElementById('promoLink').textContent.trim();
+      navigator.clipboard.writeText(link)
+        .then(() => {
+          showAlert("Link copied to clipboard!");
+        })
+        .catch(err => {
+          showAlert("Failed to copy. Please try again.");
+          console.error("Copy failed:", err);
+        });
+    });
+
+    // ======== LOAD USER DATA ========
+    function loadUserData() {
+      const user = localStorage.getItem('bluepay_user');
+      
+      if (!user) {
+        showAlert("Please log in again.");
+        setTimeout(() => {
+          window.location.href = 'login.html';
+        }, 2000);
+        return;
+      }
+
+      try {
+        const userData = JSON.parse(user);
+        const username = userData.name || userData.email.split('@')[0];
+        const email = userData.email || 'Unknown';
+
+        // Display username and email
+        document.getElementById('displayedUsername').textContent = username;
+        document.getElementById('userEmail').textContent = email;
+
+        // Set promo link
+        document.getElementById('promoLink').textContent = `https://${username}.com`;
+
+      } catch (err) {
+        console.error("Error parsing user data:", err);
+        showAlert("Error loading profile.");
+      }
+    }
+
+    // ======== INIT ON LOAD ========
+    document.addEventListener('DOMContentLoaded', () => {
+      loadUserData();
+    });
+  </script>
+</body>
+</html>
