@@ -58,24 +58,24 @@
       color: white;
     }
 
-    .notification-icon-container {
+    .messenger-icon-container {
       position: relative;
       cursor: pointer;
     }
     
-    .notification-icon {
-      width: 20px;
-      height: 20px;
+    .messenger-icon {
+      width: 24px;
+      height: 24px;
       fill: white;
       transition: fill 0.9s;
     }
     
-    .notification-icon:hover {
+    .messenger-icon:hover {
       fill: darkred;
       background-color: darkblue;
     }
     
-    .notification-badge {
+    .messenger-badge {
       position: absolute;
       top: -5px;
       right: -5px;
@@ -93,7 +93,7 @@
       z-index: 10;
     }
     
-    .notification-badge.hidden {
+    .messenger-badge.hidden {
       display: none;
     }
 
@@ -331,14 +331,14 @@
   <!-- Header -->
   <div class="header">
     <div style="display: flex; align-items: center;">
-      <img src="https://via.placeholder.com/40" alt="Profile" class="profile-pic" />
+      <img src=" https://via.placeholder.com/40 " alt="Profile" class="profile-pic" />
       <span class="user-name" id="userName">godswille922</span>
     </div>
-    <div class="notification-icon-container" onclick="window.location.href='notification.html'">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="notification-icon">
-        <path d="M12 22c1.1 0 2-5.9 2-2h-4c0 1.1.8 5 2 2zm0-20v20h10l-1.9 1.9V9h-1v10h1v2h-4v-2h1V8h1V4h2z"/>
+    <div class="messenger-icon-container" onclick="window.location.href='friends.html'">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="messenger-icon">
+        <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
       </svg>
-      <div class="notification-badge" id="notificationBadge">0</div>
+      <div class="messenger-badge" id="messengerBadge">0</div>
     </div>
   </div>
 
@@ -584,9 +584,9 @@
       updateNotificationBadge(count);
     }
 
-    // ======== UPDATE NOTIFICATION BADGE ========
+    // ======== UPDATE MESSENGER BADGE ========
     function updateNotificationBadge(count) {
-      const badge = document.getElementById('notificationBadge');
+      const badge = document.getElementById('messengerBadge');
       if (count > 0) {
         badge.textContent = count > 99 ? '99+' : count;
         badge.classList.remove('hidden');
