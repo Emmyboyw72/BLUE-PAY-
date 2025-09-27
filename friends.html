@@ -3,9 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>BluePay Channel - Messenger</title>
+  <title>BluePay Friends</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  
   <style>
     :root {
       --blue-primary: #1a73e8;
@@ -14,11 +20,9 @@
       --text-gray: #333333;
       --border-gray: #dce0e6;
       --light-gray: #f5f5f5;
-      --message-bg: #e6f4ff;
-      --admin-bg: #dcf8c6;
-      --iphone-green: #30d158;
-      --iphone-gray: #f5f6f9;
-      --iphone-border: #d1d1d6;
+      --success-green: #34a853;
+      --warning-yellow: #fbbc05;
+      --error-red: #ea4335;
     }
 
     * {
@@ -29,14 +33,14 @@
     }
 
     body {
-      background-color: #f0f2f5;
+      background-color: #f8f9fa;
       color: var(--text-gray);
       min-height: 100vh;
       position: relative;
       touch-action: manipulation;
       -webkit-text-size-adjust: none;
       -ms-text-size-adjust: none;
-      padding-bottom: 80px;
+      padding-bottom: 20px;
     }
 
     .header {
@@ -52,318 +56,281 @@
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
-    .channel-info {
-      display: flex;
-      align-items: center;
-    }
-
-    .channel-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background-color: var(--blue-dark);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-right: 12px;
-      font-size: 1.2rem;
-    }
-
-    .channel-details h1 {
-      font-size: 1.2rem;
+    .header h1 {
+      font-size: 1.3rem;
       font-weight: 600;
     }
 
-    .channel-details p {
-      font-size: 0.85rem;
-      opacity: 0.9;
-    }
-
-    .follow-btn {
+    .add-contact-btn {
       background-color: var(--white);
       color: var(--blue-primary);
       border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .search-container {
+      padding: 1rem 1.5rem;
+      background-color: white;
+      border-bottom: 1px solid var(--border-gray);
+      display: none;
+    }
+
+    .search-container.active {
+      display: block;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid var(--border-gray);
+      border-radius: 24px;
+      font-size: 1rem;
+      outline: none;
+    }
+
+    .search-input:focus {
+      border-color: var(--blue-primary);
+      box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
+    }
+
+    .search-result {
+      padding: 12px 16px;
+      margin-top: 12px;
+      background-color: white;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .search-result h3 {
+      font-size: 1.1rem;
+      margin-bottom: 6px;
+    }
+
+    .search-result p {
+      font-size: 0.9rem;
+      margin-bottom: 12px;
+    }
+
+    .status-registered {
+      color: var(--success-green);
+      font-weight: 600;
+    }
+
+    .status-not-registered {
+      color: var(--error-red);
+      font-weight: 600;
+    }
+
+    .add-user-btn {
+      background-color: var(--blue-primary);
+      color: white;
+      border: none;
       border-radius: 20px;
-      padding: 6px 16px;
+      padding: 8px 20px;
       font-weight: 600;
       font-size: 0.9rem;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: background-color 0.2s;
     }
 
-    .follow-btn:hover {
-      background-color: #e8f0fe;
+    .add-user-btn:hover {
+      background-color: var(--blue-dark);
     }
 
-    .follow-btn.following {
-      background-color: var(--blue-primary);
-      color: white;
+    .add-user-btn:disabled {
+      background-color: #b0b0b0;
+      cursor: not-allowed;
     }
 
-    .welcome-banner {
-      background: linear-gradient(135deg, var(--blue-primary), var(--blue-dark));
-      color: white;
-      padding: 1.5rem;
-      text-align: center;
-      margin-bottom: 1rem;
-      border-radius: 0 0 20px 20px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-
-    .welcome-banner h2 {
-      font-size: 1.4rem;
-      margin-bottom: 0.5rem;
-    }
-
-    .welcome-banner p {
-      font-size: 0.95rem;
-      opacity: 0.9;
-    }
-
-    .members-count {
-      display: inline-block;
-      background-color: rgba(255,255,255,0.2);
-      padding: 4px 12px;
-      border-radius: 20px;
-      margin-top: 0.5rem;
-      font-size: 0.9rem;
-    }
-
-    .messages-container {
+    .friends-container {
       padding: 1rem;
       max-width: 800px;
       margin: 0 auto;
     }
 
-    .message {
-      display: flex;
-      margin-bottom: 1.2rem;
-      max-width: 80%;
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #666;
     }
 
-    .message.admin {
-      margin-left: auto;
-      flex-direction: row-reverse;
-    }
-
-    .message-bubble {
-      padding: 12px 16px;
-      border-radius: 18px;
-      position: relative;
-      word-wrap: break-word;
-      font-size: 0.95rem;
-      line-height: 1.4;
-    }
-
-    .message.admin .message-bubble {
-      background-color: var(--admin-bg);
-      color: #333;
-      border-bottom-right-radius: 4px;
-    }
-
-    .message.user .message-bubble {
-      background-color: var(--message-bg);
-      color: #333;
-      border-bottom-left-radius: 4px;
-    }
-
-    .message-info {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 4px;
-      font-size: 0.75rem;
+    .empty-state i {
+      font-size: 3rem;
+      color: var(--blue-primary);
+      margin-bottom: 20px;
       opacity: 0.7;
     }
 
-    .message.admin .message-info {
-      text-align: right;
-    }
-
-    .message-timestamp {
-      margin-left: 8px;
-    }
-
-    .admin-badge {
-      background-color: var(--blue-primary);
-      color: white;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 0.7rem;
-      margin-left: 6px;
-    }
-
-    /* iPhone 17 Style Input Area */
-    .input-area {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background-color: var(--iphone-gray);
-      padding: 12px 16px;
-      border-top: 1px solid var(--iphone-border);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      max-width: 800px;
-      margin: 0 auto;
-      box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-      border-radius: 14px 14px 0 0;
-      margin-bottom: env(safe-area-inset-bottom);
-    }
-
-    .attach-btn {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background-color: var(--white);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--blue-primary);
-      font-size: 1.4rem;
-      cursor: pointer;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      transition: transform 0.2s;
-    }
-
-    .attach-btn:hover {
-      transform: scale(1.05);
-    }
-
-    .message-input-container {
-      flex: 1;
-      background-color: var(--white);
-      border-radius: 24px;
-      padding: 8px 16px;
-      display: flex;
-      align-items: center;
-    }
-
-    .message-input {
-      flex: 1;
-      border: none;
-      outline: none;
-      font-size: 1rem;
-      padding: 8px 0;
-      background: transparent;
-      resize: none;
-      max-height: 100px;
-    }
-
-    .send-btn {
-      width: 52px;
-      height: 52px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--iphone-green), #28a745);
-      color: white;
-      border: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(48, 209, 88, 0.4);
-      transition: all 0.2s;
-    }
-
-    .send-btn:hover {
-      transform: scale(1.05);
-      box-shadow: 0 6px 16px rgba(48, 209, 88, 0.5);
-    }
-
-    .send-btn:disabled {
-      background: linear-gradient(135deg, #b0b0b0, #9a9a9a);
-      cursor: not-allowed;
-      box-shadow: none;
-      transform: none;
-    }
-
-    .send-btn i {
-      font-size: 1.4rem;
-    }
-
-    .not-admin-message {
-      text-align: center;
-      padding: 20px;
-      color: #666;
-      font-style: italic;
-    }
-
-    .join-prompt {
-      text-align: center;
-      padding: 30px 20px;
-      max-width: 500px;
-      margin: 0 auto;
-    }
-
-    .join-prompt h3 {
+    .empty-state h3 {
       font-size: 1.4rem;
       margin-bottom: 15px;
       color: var(--blue-primary);
     }
 
-    .join-prompt p {
-      margin-bottom: 25px;
+    .empty-state p {
       line-height: 1.6;
+      max-width: 500px;
+      margin: 0 auto;
     }
 
-    .follow-channel-btn {
+    .friend-item {
+      display: flex;
+      align-items: center;
+      padding: 16px;
+      background-color: white;
+      border-radius: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      transition: transform 0.2s, box-shadow 0.2s;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .friend-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+
+    .friend-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
       background-color: var(--blue-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
       color: white;
-      border: none;
-      border-radius: 24px;
-      padding: 12px 30px;
+      font-size: 1.4rem;
+      margin-right: 16px;
+      flex-shrink: 0;
+    }
+
+    .friend-info {
+      flex: 1;
+    }
+
+    .friend-name {
       font-size: 1.1rem;
       font-weight: 600;
-      cursor: pointer;
-      transition: background-color 0.2s;
+      margin-bottom: 4px;
     }
 
-    .follow-channel-btn:hover {
-      background-color: var(--blue-dark);
+    .friend-preview {
+      font-size: 0.9rem;
+      color: #666;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
     }
 
-    .hidden {
-      display: none;
+    .friend-tag {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
     }
 
-    /* Media preview */
-    .media-preview {
-      max-width: 200px;
-      max-height: 200px;
+    .channel-tag {
+      background-color: rgba(26, 115, 232, 0.15);
+      color: var(--blue-primary);
+    }
+
+    .vendor-tag {
+      background-color: rgba(52, 168, 83, 0.15);
+      color: var(--success-green);
+    }
+
+    .user-tag {
+      background-color: rgba(108, 117, 125, 0.15);
+      color: #6c757d;
+    }
+
+    .message-badge {
+      background-color: var(--blue-primary);
+      color: white;
+      min-width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      font-weight: bold;
+      padding: 0 4px;
+    }
+
+    /* Beautiful Alert */
+    .beautiful-alert {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100%);
+      background: linear-gradient(135deg, var(--blue-primary), var(--blue-dark));
+      color: white;
+      padding: 16px 24px;
       border-radius: 12px;
-      margin-top: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      z-index: 2000;
+      font-weight: 500;
+      transition: transform 0.3s ease-out;
+      max-width: 90%;
+      text-align: center;
     }
 
-    /* File input hidden */
-    #fileInput {
-      display: none;
+    .beautiful-alert.show {
+      transform: translateX(-50%) translateY(0);
     }
 
-    /* Prevent text selection */
-    .follow-btn, .send-btn, .follow-channel-btn, .attach-btn {
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
+    .beautiful-alert.error {
+      background: linear-gradient(135deg, var(--error-red), #c53929);
     }
 
-    /* Responsive adjustments */
+    .beautiful-alert.success {
+      background: linear-gradient(135deg, var(--success-green), #2a8c44);
+    }
+
+    .beautiful-alert.warning {
+      background: linear-gradient(135deg, var(--warning-yellow), #e0a800);
+    }
+
+    /* Loading spinner */
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: var(--blue-primary);
+    }
+
+    .loading i {
+      font-size: 2rem;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Responsive */
     @media (max-width: 600px) {
       .header {
         padding: 0.8rem 1rem;
       }
       
-      .channel-details h1 {
-        font-size: 1.1rem;
+      .friend-item {
+        padding: 14px;
       }
       
-      .message {
-        max-width: 90%;
-      }
-      
-      .input-area {
-        padding: 10px 12px;
+      .search-container {
+        padding: 1rem;
       }
     }
   </style>
@@ -371,52 +338,28 @@
 <body>
   <!-- Header -->
   <div class="header">
-    <div class="channel-info">
-      <div class="channel-icon">
-        <i class="fas fa-broadcast-tower"></i>
-      </div>
-      <div class="channel-details">
-        <h1>BluePay Official</h1>
-        <p id="membersCount">1,000,000+ members</p>
-      </div>
-    </div>
-    <button class="follow-btn" id="followButton">Follow</button>
-  </div>
-
-  <!-- Welcome Banner -->
-  <div class="welcome-banner hidden" id="welcomeBanner">
-    <h2>Welcome to BluePay Channel!</h2>
-    <p>You're now part of our official announcement channel</p>
-    <div class="members-count">1,000,001 members</div>
-  </div>
-
-  <!-- Join Prompt (shown when not following) -->
-  <div class="join-prompt" id="joinPrompt">
-    <h3>Join BluePay Official Channel</h3>
-    <p>Get the latest updates, exclusive offers, and important announcements directly from BluePay. Tap "Follow" to join our community of over 1 million members!</p>
-    <button class="follow-channel-btn" id="joinButton">Follow Channel</button>
-  </div>
-
-  <!-- Messages Container -->
-  <div class="messages-container hidden" id="messagesContainer">
-    <!-- Messages will be loaded here -->
-  </div>
-
-  <!-- Input Area (only visible for admin) -->
-  <div class="input-area hidden" id="inputArea">
-    <button class="attach-btn" id="attachButton">
+    <h1>Friends</h1>
+    <button class="add-contact-btn" id="addContactBtn">
       <i class="fas fa-plus"></i>
     </button>
-    <div class="message-input-container">
-      <input type="text" class="message-input" id="messageInput" placeholder="Message">
-    </div>
-    <button class="send-btn" id="sendButton">
-      <i class="fas fa-paper-plane"></i>
-    </button>
   </div>
-  
-  <!-- Hidden file input -->
-  <input type="file" id="fileInput" accept="image/*,video/*">
+
+  <!-- Search Container -->
+  <div class="search-container" id="searchContainer">
+    <input type="email" class="search-input" id="searchInput" placeholder="Enter Gmail address to search...">
+    <div id="searchResult"></div>
+  </div>
+
+  <!-- Friends List -->
+  <div class="friends-container" id="friendsContainer">
+    <div class="loading">
+      <i class="fas fa-spinner"></i>
+      <p>Loading friends...</p>
+    </div>
+  </div>
+
+  <!-- Beautiful Alert -->
+  <div class="beautiful-alert" id="beautifulAlert">Alert message</div>
 
   <script>
     // ======== FIREBASE CONFIG ========
@@ -431,331 +374,419 @@
     };
 
     // Initialize Firebase
-    let firebaseInitialized = false;
-    let db;
-    let storage;
-    
-    if (typeof firebase !== 'undefined') {
-      try {
-        if (!firebase.apps.length) {
-          firebase.initializeApp(firebaseConfig);
-          firebaseInitialized = true;
-          db = firebase.firestore();
-          storage = firebase.storage();
-        }
-      } catch (err) {
-        console.warn("Firebase init error:", err);
-      }
-    }
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
 
     // DOM Elements
-    const followButton = document.getElementById('followButton');
-    const joinButton = document.getElementById('joinButton');
-    const welcomeBanner = document.getElementById('welcomeBanner');
-    const joinPrompt = document.getElementById('joinPrompt');
-    const messagesContainer = document.getElementById('messagesContainer');
-    const inputArea = document.getElementById('inputArea');
-    const messageInput = document.getElementById('messageInput');
-    const sendButton = document.getElementById('sendButton');
-    const attachButton = document.getElementById('attachButton');
-    const fileInput = document.getElementById('fileInput');
-    const membersCount = document.getElementById('membersCount');
+    const addContactBtn = document.getElementById('addContactBtn');
+    const searchContainer = document.getElementById('searchContainer');
+    const searchInput = document.getElementById('searchInput');
+    const searchResult = document.getElementById('searchResult');
+    const friendsContainer = document.getElementById('friendsContainer');
+    const beautifulAlert = document.getElementById('beautifulAlert');
 
-    // Current user state
+    // Current user
     let currentUser = null;
-    let isFollowing = false;
     let isAdmin = false;
-    let selectedFile = null;
+    let allFirebaseUsers = [];
 
-    // ======== FORMAT TIME ========
-    function formatTime(date) {
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    // Show beautiful alert
+    function showBeautifulAlert(message, type = 'info') {
+      beautifulAlert.textContent = message;
+      beautifulAlert.className = 'beautiful-alert ' + type;
+      beautifulAlert.classList.add('show');
+      
+      setTimeout(() => {
+        beautifulAlert.classList.remove('show');
+      }, 3000);
     }
 
-    // ======== LOAD USER FROM LOCALSTORAGE ========
+    // Get last message preview
+    function getMessagePreview(messages) {
+      if (!messages || messages.length === 0) return '';
+      const lastMessage = messages[messages.length - 1];
+      const text = lastMessage.text || '';
+      return text.length > 30 ? text.substring(0, 30) + '...' : text;
+    }
+
+    // Get unread count
+    function getUnreadCount(messages, lastRead) {
+      if (!messages || messages.length === 0) return 0;
+      if (!lastRead) return messages.length;
+      
+      const lastReadTime = new Date(lastRead).getTime();
+      return messages.filter(msg => new Date(msg.timestamp).getTime() > lastReadTime).length;
+    }
+
+    // Get chat ID
+    function getChatId(user1, user2) {
+      return [user1, user2].sort().join('_');
+    }
+
+    // Load current user from localStorage
     function loadCurrentUser() {
       const userStr = localStorage.getItem('bluepay_user');
       if (userStr) {
         try {
           currentUser = JSON.parse(userStr);
           isAdmin = currentUser.email === 'bluepay863@gmail.com';
+          return true;
         } catch (e) {
           console.error("Error parsing user data", e);
+          showBeautifulAlert("Error loading user data. Please log in again.", 'error');
+          window.location.href = 'login.html';
+          return false;
         }
       }
       
-      // If no user, redirect to login
-      if (!currentUser) {
-        window.location.href = 'login.html';
+      window.location.href = 'login.html';
+      return false;
+    }
+
+    // Fetch all users from Firebase
+    async function fetchAllUsersFromFirebase() {
+      try {
+        const usersSnapshot = await db.collection('users').get();
+        allFirebaseUsers = [];
+        
+        usersSnapshot.forEach(doc => {
+          const userData = doc.data();
+          allFirebaseUsers.push({
+            email: userData.email,
+            name: userData.name || userData.email.split('@')[0],
+            timestamp: userData.timestamp || new Date().toISOString()
+          });
+        });
+        
+        // Ensure current user is in the list
+        const currentUserExists = allFirebaseUsers.some(user => user.email === currentUser.email);
+        if (!currentUserExists) {
+          allFirebaseUsers.push({
+            email: currentUser.email,
+            name: currentUser.name || currentUser.email.split('@')[0],
+            timestamp: new Date().toISOString()
+          });
+        }
+        
+        return allFirebaseUsers;
+      } catch (error) {
+        console.error("Error fetching users from Firebase:", error);
+        showBeautifulAlert("Failed to load users. Please try again.", 'error');
+        return [];
+      }
+    }
+
+    // Check if user is registered (in Firebase)
+    function isUserRegistered(email) {
+      return allFirebaseUsers.some(user => user.email === email);
+    }
+
+    // Get user details from Firebase data
+    function getUserDetails(email) {
+      return allFirebaseUsers.find(user => user.email === email);
+    }
+
+    // Get chat messages from localStorage
+    function getChatMessages(partnerEmail) {
+      const chatId = getChatId(currentUser.email, partnerEmail);
+      return JSON.parse(localStorage.getItem(`chat_${chatId}`) || '[]');
+    }
+
+    // Get last read time from localStorage
+    function getLastReadTime(partnerEmail) {
+      const chatId = getChatId(currentUser.email, partnerEmail);
+      return localStorage.getItem(`last_read_${chatId}`);
+    }
+
+    // Add user to contacts (local storage only)
+    function addUserToContacts(email) {
+      if (!isUserRegistered(email)) {
+        showBeautifulAlert("This user is not registered with BluePay!", 'error');
+        return false;
+      }
+      
+      // Get existing contacts
+      const contacts = JSON.parse(localStorage.getItem('user_contacts') || '[]');
+      
+      // Check if already exists
+      if (contacts.some(contact => contact.email === email)) {
+        showBeautifulAlert("This user is already in your contacts!", 'warning');
+        return false;
+      }
+      
+      // Add new contact
+      const userDetails = getUserDetails(email);
+      contacts.push({
+        email: email,
+        name: userDetails.name,
+        nickname: '',
+        isVendor: false,
+        dateAdded: new Date().toISOString()
+      });
+      
+      localStorage.setItem('user_contacts', JSON.stringify(contacts));
+      showBeautifulAlert("User added to contacts successfully!", 'success');
+      return true;
+    }
+
+    // Render friends list for admin (sees all registered users)
+    function renderAdminFriendsList() {
+      friendsContainer.innerHTML = '';
+      
+      // Always add BluePay Channel first
+      const channelElement = document.createElement('div');
+      channelElement.className = 'friend-item';
+      channelElement.setAttribute('data-email', 'bluepay_channel');
+      channelElement.setAttribute('data-type', 'channel');
+      channelElement.innerHTML = `
+        <div class="friend-avatar">
+          <i class="fas fa-broadcast-tower"></i>
+        </div>
+        <div class="friend-info">
+          <div class="friend-name">BluePay Channel</div>
+          <div class="friend-preview">
+            <span>Official announcements and updates</span>
+          </div>
+          <span class="friend-tag channel-tag">Channel</span>
+        </div>
+      `;
+      friendsContainer.appendChild(channelElement);
+      
+      // Add all registered users (excluding current admin)
+      const otherUsers = allFirebaseUsers.filter(user => user.email !== currentUser.email);
+      
+      otherUsers.forEach(user => {
+        const messages = getChatMessages(user.email);
+        const lastRead = getLastReadTime(user.email);
+        const preview = getMessagePreview(messages);
+        const unreadCount = getUnreadCount(messages, lastRead);
+        
+        const contactElement = document.createElement('div');
+        contactElement.className = 'friend-item';
+        contactElement.setAttribute('data-email', user.email);
+        contactElement.setAttribute('data-type', 'user');
+        contactElement.innerHTML = `
+          <div class="friend-avatar">
+            <i class="fas fa-user"></i>
+          </div>
+          <div class="friend-info">
+            <div class="friend-name">${user.name}</div>
+            <div class="friend-preview">
+              <span>${preview || 'No messages yet'}</span>
+              ${unreadCount > 0 ? `<span class="message-badge">${unreadCount > 99 ? '99+' : unreadCount}</span>` : ''}
+            </div>
+            <span class="friend-tag user-tag">User</span>
+          </div>
+        `;
+        friendsContainer.appendChild(contactElement);
+        
+        contactElement.addEventListener('click', () => {
+          const contact = {
+            email: user.email,
+            name: user.name,
+            isVendor: user.email === 'bluepay863@gmail.com'
+          };
+          localStorage.setItem('selected_contact', JSON.stringify(contact));
+          window.location.href = 'messenger.html';
+        });
+      });
+      
+      // Add click event for channel
+      channelElement.addEventListener('click', () => {
+        window.location.href = 'channel.html';
+      });
+    }
+
+    // Render friends list for regular users (only channel + vendor + saved contacts)
+    function renderUserFriendsList() {
+      friendsContainer.innerHTML = '';
+      
+      // Add BluePay Channel as first contact
+      const channelElement = document.createElement('div');
+      channelElement.className = 'friend-item';
+      channelElement.setAttribute('data-email', 'bluepay_channel');
+      channelElement.setAttribute('data-type', 'channel');
+      channelElement.innerHTML = `
+        <div class="friend-avatar">
+          <i class="fas fa-broadcast-tower"></i>
+        </div>
+        <div class="friend-info">
+          <div class="friend-name">BluePay Channel</div>
+          <div class="friend-preview">
+            <span>Official announcements and updates</span>
+          </div>
+          <span class="friend-tag channel-tag">Channel</span>
+        </div>
+      `;
+      friendsContainer.appendChild(channelElement);
+      
+      // Add BluePay Vendor (admin) as second contact
+      const adminElement = document.createElement('div');
+      adminElement.className = 'friend-item';
+      adminElement.setAttribute('data-email', 'bluepay863@gmail.com');
+      adminElement.setAttribute('data-type', 'vendor');
+      adminElement.innerHTML = `
+        <div class="friend-avatar">
+          <i class="fas fa-user-shield"></i>
+        </div>
+        <div class="friend-info">
+          <div class="friend-name">BluePay Vendor</div>
+          <div class="friend-preview">
+            <span>Admin support and assistance</span>
+          </div>
+          <span class="friend-tag vendor-tag">Vendor</span>
+        </div>
+      `;
+      friendsContainer.appendChild(adminElement);
+      
+      // Add user's saved contacts (excluding admin and channel)
+      const contacts = JSON.parse(localStorage.getItem('user_contacts') || '[]');
+      const userContacts = contacts.filter(contact => 
+        contact.email !== 'bluepay_channel' && 
+        contact.email !== 'bluepay863@gmail.com' &&
+        contact.email !== currentUser.email
+      );
+      
+      userContacts.forEach(contact => {
+        const messages = getChatMessages(contact.email);
+        const lastRead = getLastReadTime(contact.email);
+        const preview = getMessagePreview(messages);
+        const unreadCount = getUnreadCount(messages, lastRead);
+        
+        const contactElement = document.createElement('div');
+        contactElement.className = 'friend-item';
+        contactElement.setAttribute('data-email', contact.email);
+        contactElement.setAttribute('data-type', 'user');
+        contactElement.innerHTML = `
+          <div class="friend-avatar">
+            <i class="fas fa-user"></i>
+          </div>
+          <div class="friend-info">
+            <div class="friend-name">${contact.name}</div>
+            <div class="friend-preview">
+              <span>${preview || 'No messages yet'}</span>
+              ${unreadCount > 0 ? `<span class="message-badge">${unreadCount > 99 ? '99+' : unreadCount}</span>` : ''}
+            </div>
+            <span class="friend-tag user-tag">User</span>
+          </div>
+        `;
+        friendsContainer.appendChild(contactElement);
+        
+                contactElement.addEventListener('click', () => {
+          localStorage.setItem('selected_contact', JSON.stringify(contact));
+          window.location.href = 'messenger.html';
+        });
+      });
+      
+      // Add click events for channel and admin
+      channelElement.addEventListener('click', () => {
+        window.location.href = 'channel.html';
+      });
+      
+      adminElement.addEventListener('click', () => {
+        const adminContact = {
+          email: 'bluepay863@gmail.com',
+          name: 'BluePay Vendor',
+          isVendor: true
+        };
+        localStorage.setItem('selected_contact', JSON.stringify(adminContact));
+        window.location.href = 'messenger.html';
+      });
+    }
+
+    // Search for user in Firebase
+    function searchUser() {
+      const email = searchInput.value.trim();
+      
+      if (!email) {
+        searchResult.innerHTML = '';
         return;
       }
       
-      // Check if user is following
-      isFollowing = localStorage.getItem('isFollowingChannel') === 'true';
+      if (!email.endsWith('@gmail.com')) {
+        searchResult.innerHTML = `
+          <div class="search-result">
+            <h3>${email}</h3>
+            <p class="status-not-registered">This person is not registered yet with BluePay</p>
+            <button class="add-user-btn" disabled>Add User</button>
+          </div>
+        `;
+        return;
+      }
       
-      // Update UI based on user state
-      updateUI();
+      const isRegistered = isUserRegistered(email);
+      const userDetails = isRegistered ? getUserDetails(email) : null;
+      
+      searchResult.innerHTML = `
+        <div class="search-result">
+          <h3>${isRegistered ? userDetails.name : email}</h3>
+          <p class="${isRegistered ? 'status-registered' : 'status-not-registered'}">
+            ${isRegistered ? 'This person is a BluePay user' : 'This person is not registered yet with BluePay'}
+          </p>
+          <button class="add-user-btn" ${isRegistered ? '' : 'disabled'}>
+            ${isRegistered ? 'Add User' : 'Not Available'}
+          </button>
+        </div>
+      `;
+      
+      // Add event listener to add button
+      const addButton = searchResult.querySelector('.add-user-btn');
+      if (addButton && isRegistered) {
+        addButton.addEventListener('click', () => {
+          if (addUserToContacts(email)) {
+            renderFriendsList();
+            searchContainer.classList.remove('active');
+            searchInput.value = '';
+            searchResult.innerHTML = '';
+          }
+        });
+      }
     }
 
-    // ======== UPDATE UI BASED ON USER STATE ========
-    function updateUI() {
+    // Render friends list based on user role
+    function renderFriendsList() {
       if (isAdmin) {
-        // Admin always sees the channel
-        joinPrompt.classList.add('hidden');
-        welcomeBanner.classList.remove('hidden');
-        messagesContainer.classList.remove('hidden');
-        inputArea.classList.remove('hidden');
-        followButton.textContent = 'Admin';
-        followButton.classList.add('following');
-        followButton.disabled = true;
-        membersCount.textContent = '1,000,001 members';
-      } else if (isFollowing) {
-        // Regular user who is following
-        joinPrompt.classList.add('hidden');
-        welcomeBanner.classList.remove('hidden');
-        messagesContainer.classList.remove('hidden');
-        inputArea.classList.add('hidden');
-        followButton.textContent = 'Following';
-        followButton.classList.add('following');
-        membersCount.textContent = '1,000,001 members';
+        renderAdminFriendsList();
       } else {
-        // Regular user not following
-        joinPrompt.classList.remove('hidden');
-        welcomeBanner.classList.add('hidden');
-        messagesContainer.classList.add('hidden');
-        inputArea.classList.add('hidden');
-        followButton.textContent = 'Follow';
-        followButton.classList.remove('following');
-        membersCount.textContent = '1,000,000+ members';
+        renderUserFriendsList();
       }
     }
 
-    // ======== TOGGLE FOLLOWING STATUS ========
-    function toggleFollowing() {
-      if (isAdmin) return; // Admin can't unfollow
-      
-      isFollowing = !isFollowing;
-      localStorage.setItem('isFollowingChannel', isFollowing.toString());
-      
-      // If just followed, show welcome banner
-      if (isFollowing) {
-        welcomeBanner.classList.remove('hidden');
-        setTimeout(() => {
-          welcomeBanner.classList.add('hidden');
-        }, 5000);
+    // Initialize the app
+    async function init() {
+      if (!loadCurrentUser()) {
+        return;
       }
       
-      updateUI();
-      loadMessages();
-    }
-
-    // ======== UPLOAD FILE TO FIREBASE STORAGE ========
-    async function uploadFile(file) {
-      if (!file || !storage) return null;
+      // Fetch all users from Firebase
+      await fetchAllUsersFromFirebase();
       
-      const fileName = `channel_media/${Date.now()}_${file.name}`;
-      const storageRef = storage.ref(fileName);
+      // Render friends list
+      renderFriendsList();
       
-      try {
-        const snapshot = await storageRef.put(file);
-        const downloadURL = await snapshot.ref.getDownloadURL();
-        return {
-          url: downloadURL,
-          type: file.type.startsWith('image') ? 'image' : 'video'
-        };
-      } catch (error) {
-        console.error("Error uploading file: ", error);
-        return null;
-      }
-    }
-
-    // ======== SEND MESSAGE (ADMIN ONLY) ========
-    async function sendMessage() {
-      if (!isAdmin || !firebaseInitialized) return;
-      
-      const messageText = messageInput.value.trim();
-      if (!messageText && !selectedFile) return;
-      
-      // Disable send button during sending
-      sendButton.disabled = true;
-      
-      let mediaInfo = null;
-      if (selectedFile) {
-        mediaInfo = await uploadFile(selectedFile);
-        if (!mediaInfo) {
-          alert("Failed to upload media. Please try again.");
-          sendButton.disabled = false;
-          return;
+      // Event listeners
+      addContactBtn.addEventListener('click', () => {
+        searchContainer.classList.toggle('active');
+        if (searchContainer.classList.contains('active')) {
+          searchInput.focus();
         }
-      }
+      });
       
-      const message = {
-        text: messageText,
-        sender: 'admin',
-        senderName: 'BluePay Official',
-        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        ...(mediaInfo && { media: mediaInfo })
-      };
+      searchInput.addEventListener('input', searchUser);
       
-      // Add to Firestore
-      db.collection('channel_messages').add(message)
-        .then(() => {
-          // Reset input
-          messageInput.value = '';
-          selectedFile = null;
-          sendButton.disabled = false;
-          loadMessages();
-        })
-        .catch(error => {
-          console.error("Error sending message: ", error);
-          alert("Failed to send message. Please try again.");
-          sendButton.disabled = false;
-        });
+      // Close search when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!searchContainer.contains(e.target) && e.target !== addContactBtn) {
+          searchContainer.classList.remove('active');
+          searchInput.value = '';
+          searchResult.innerHTML = '';
+        }
+      });
     }
 
-    // ======== LOAD MESSAGES FROM FIRESTORE ========
-    function loadMessages() {
-      if (!firebaseInitialized || (!isAdmin && !isFollowing)) return;
-      
-      // Clear container
-      messagesContainer.innerHTML = '';
-      
-      // Get messages from Firestore
-      db.collection('channel_messages')
-        .orderBy('timestamp', 'desc')
-        .limit(50)
-        .get()
-        .then(querySnapshot => {
-          if (querySnapshot.empty) {
-            messagesContainer.innerHTML = '<div class="not-admin-message">No messages yet. Be the first to post as admin!</div>';
-            return;
-          }
-          
-          const messages = [];
-          querySnapshot.forEach(doc => {
-            messages.push({
-              id: doc.id,
-              ...doc.data()
-            });
-          });
-          
-          // Reverse to show oldest first
-          messages.reverse();
-          
-          // Render messages
-          messages.forEach(msg => {
-            const date = msg.timestamp.toDate();
-            let messageContent = msg.text || '';
-            
-            if (msg.media) {
-              if (msg.media.type === 'image') {
-                messageContent += `<img src="${msg.media.url}" class="media-preview" alt="Media">`;
-              } else if (msg.media.type === 'video') {
-                messageContent += `<video controls class="media-preview" src="${msg.media.url}"></video>`;
-              }
-            }
-            
-            const messageEl = document.createElement('div');
-            messageEl.className = `message ${msg.sender === 'admin' ? 'admin' : 'user'}`;
-            messageEl.innerHTML = `
-              <div class="message-bubble">
-                ${messageContent}
-                <div class="message-info">
-                  <span>${msg.senderName}${msg.sender === 'admin' ? '<span class="admin-badge">ADMIN</span>' : ''}</span>
-                  <span class="message-timestamp">${formatTime(date)}</span>
-                </div>
-              </div>
-            `;
-            messagesContainer.appendChild(messageEl);
-          });
-          
-          // Scroll to bottom
-          messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        })
-        .catch(error => {
-          console.error("Error loading messages: ", error);
-          messagesContainer.innerHTML = '<div class="not-admin-message">Failed to load messages. Please try again later.</div>';
-        });
-    }
-
-    // ======== REAL-TIME MESSAGE UPDATES ========
-    function setupRealtimeListener() {
-      if (!firebaseInitialized || (!isAdmin && !isFollowing)) return;
-      
-      // Listen for new messages
-      db.collection('channel_messages')
-        .orderBy('timestamp', 'desc')
-        .limit(1)
-        .onSnapshot(snapshot => {
-          if (!snapshot.empty) {
-            const latestMsg = snapshot.docs[0].data();
-            const latestTime = latestMsg.timestamp.toDate().getTime();
-            
-            // Only reload if it's a new message (not one we just sent)
-            const currentTime = new Date().getTime();
-            if (currentTime - latestTime < 10000) {
-              loadMessages();
-            }
-          }
-        });
-    }
-
-    // ======== EVENT LISTENERS ========
-    followButton.addEventListener('click', toggleFollowing);
-    joinButton.addEventListener('click', toggleFollowing);
-    
-    sendButton.addEventListener('click', sendMessage);
-    messageInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-      }
-    });
-    
-    attachButton.addEventListener('click', () => {
-      fileInput.click();
-    });
-    
-    fileInput.addEventListener('change', (e) => {
-      if (e.target.files.length > 0) {
-        selectedFile = e.target.files[0];
-        // Show preview in input field
-        messageInput.placeholder = `Attaching: ${selectedFile.name.substring(0, 20)}${selectedFile.name.length > 20 ? '...' : ''}`;
-      }
-    });
-
-    // ======== INIT ON PAGE LOAD ========
-    document.addEventListener('DOMContentLoaded', () => {
-      loadCurrentUser();
-      loadMessages();
-      setupRealtimeListener();
-      
-      // Simulate initial messages if none exist
-      if (firebaseInitialized && isAdmin) {
-        db.collection('channel_messages').get().then(snapshot => {
-          if (snapshot.empty) {
-            const initialMessages = [
-              {
-                text: "Welcome to the official BluePay channel! This is where we'll share important updates, exclusive offers, and announcements.",
-                sender: 'admin',
-                senderName: 'BluePay Official',
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-              },
-              {
-                text: "Our promo code 'BLUE2023' gives you 15% off all transactions this month! Valid until Dec 31.",
-                sender: 'admin',
-                senderName: 'BluePay Official',
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-              }
-            ];
-            
-            initialMessages.forEach(msg => {
-              db.collection('channel_messages').add(msg);
-            });
-          }
-        });
-      }
-    });
+    // Start the app
+    document.addEventListener('DOMContentLoaded', init);
   </script>
 </body>
 </html>

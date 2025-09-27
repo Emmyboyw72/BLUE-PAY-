@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>BluePay Messenger</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --blue-primary: #1a73e8;
+      --blue-dark: #0d47a1;
+      --white: #ffffff;
+      --text-gray: #333333;
+      --border-gray: #dce0e6;
+      --light-gray: #f5f5f5;
+      --success-green: #34a853;
+      --error-red: #ea4335;
+      --message-bg: #e8f0fe;
+      --vendor-bg: #e6f4ea;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    body {
+      background-color: #f8f9fa;
+      color: var(--text-gray);
+      min-height: 100vh;
+      position: relative;
+      touch-action: manipulation;
+      -webkit-text-size-adjust: none;
+      -ms-text-size-adjust: none;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 1.5rem;
+      background-color: var(--blue-primary);
+      color: white;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .header h1 {
+      font-size: 1.3rem;
+      font-weight: 600;
+    }
+
+    .back-btn {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .chat-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      padding: 0 1rem;
+      max-width: 800px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .chat-header {
+      display: flex;
+      align-items: center;
+      padding: 1rem 0;
+      border-bottom: 1px solid var(--border-gray);
+      margin-bottom: 1rem;
+    }
+
+    .contact-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background-color: var(--blue-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.4rem;
+      margin-right: 16px;
+    }
+
+    .contact-info {
+      flex: 1;
+    }
+
+    .contact-name {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .contact-status {
+      font-size: 0.9rem;
+      color: var(--success-green);
+      display: flex;
+      align-items: center;
+    }
+
+    .contact-status i {
+      margin-right: 6px;
+    }
+
+    .messages-container {
+      flex: 1;
+      overflow-y: auto;
+      padding-bottom: 1rem;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .message {
+      max-width: 70%;
+      padding: 12px 16px;
+      margin-bottom: 12px;
+      border-radius: 18px;
+      position: relative;
+      word-wrap: break-word;
+      line-height: 1.4;
+    }
+
+    .message.outgoing {
+      background-color: var(--blue-primary);
+      color: white;
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+    }
+
+    .message.incoming {
+      background-color: var(--message-bg);
+      color: var(--text-gray);
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+    }
+
+    .message-time {
+      font-size: 0.75rem;
+      opacity: 0.8;
+      margin-top: 4px;
+      text-align: right;
+    }
+
+    .input-container {
+      display: flex;
+      padding: 1rem 0;
+      border-top: 1px solid var(--border-gray);
+      background-color: white;
+      position: sticky;
+      bottom: 0;
+      z-index: 10;
+    }
+
+    .message-input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1px solid var(--border-gray);
+      border-radius: 24px;
+      font-size: 1rem;
+      outline: none;
+      resize: none;
+      max-height: 120px;
+    }
+
+    .message-input:focus {
+      border-color: var(--blue-primary);
+      box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
+    }
+
+    .send-btn {
+      background-color: var(--blue-primary);
+      color: white;
+      border: none;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 12px;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .send-btn:disabled {
+      background-color: #b0b0b0;
+      cursor: not-allowed;
+    }
+
+    /* Beautiful Alert */
+    .beautiful-alert {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100%);
+      background: linear-gradient(135deg, var(--blue-primary), var(--blue-dark));
+      color: white;
+      padding: 16px 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      z-index: 2000;
+      font-weight: 500;
+      transition: transform 0.3s ease-out;
+      max-width: 90%;
+      text-align: center;
+    }
+
+    .beautiful-alert.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .beautiful-alert.error {
+      background: linear-gradient(135deg, var(--error-red), #c53929);
+    }
+
+    .beautiful-alert.success {
+      background: linear-gradient(135deg, var(--success-green), #2a8c44);
+    }
+
+    /* Empty state */
+    .empty-chat {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      text-align: center;
+      padding: 2rem;
+      color: #666;
+    }
+
+    .empty-chat i {
+      font-size: 4rem;
+      color: var(--blue-primary);
+      margin-bottom: 20px;
+      opacity: 0.7;
+    }
+
+    .empty-chat h3 {
+      font-size: 1.4rem;
+      margin-bottom: 15px;
+      color: var(--blue-primary);
+    }
+
+    .empty-chat p {
+      line-height: 1.6;
+      max-width: 500px;
+    }
+
+    @media (max-width: 600px) {
+      .header {
+        padding: 0.8rem 1rem;
+      }
+      .chat-header {
+        padding: 0.8rem 0;
+      }
+      .contact-avatar {
+        width: 48px;
+        height: 48px;
+        font-size: 1.2rem;
+      }
+      .contact-name {
+        font-size: 1.1rem;
+      }
+      .message {
+        max-width: 80%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <button class="back-btn" id="backBtn">
+      <i class="fas fa-arrow-left"></i>
+    </button>
+    <h1 id="chatTitle">Chat</h1>
+  </div>
+
+  <div class="chat-container">
+    <div class="chat-header">
+      <div class="contact-avatar" id="contactAvatar">
+        <i class="fas fa-user" id="contactIcon"></i>
+      </div>
+      <div class="contact-info">
+        <div class="contact-name" id="contactName">Loading...</div>
+        <div class="contact-status">
+          <i class="fas fa-circle"></i>
+          <span id="contactStatus">Online</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="messages-container" id="messagesContainer">
+      <!-- Messages loaded here -->
+    </div>
+
+    <div class="input-container">
+      <textarea 
+        class="message-input" 
+        id="messageInput" 
+        placeholder="Type a message..."
+        rows="1"
+      ></textarea>
+      <button class="send-btn" id="sendBtn" disabled>
+        <i class="fas fa-paper-plane"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="beautiful-alert" id="beautifulAlert">Alert message</div>
+
+  <script>
+    const backBtn = document.getElementById('backBtn');
+    const chatTitle = document.getElementById('chatTitle');
+    const contactName = document.getElementById('contactName');
+    const contactStatus = document.getElementById('contactStatus');
+    const messagesContainer = document.getElementById('messagesContainer');
+    const messageInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const beautifulAlert = document.getElementById('beautifulAlert');
+
+    let currentUser = null;
+    let currentContact = null;
+    let chatId = null;
+    let isAdmin = false;
+
+    function showBeautifulAlert(message, type = 'info') {
+      beautifulAlert.textContent = message;
+      beautifulAlert.className = 'beautiful-alert ' + type;
+      beautifulAlert.classList.add('show');
+      setTimeout(() => beautifulAlert.classList.remove('show'), 3000);
+    }
+
+    function formatTime(timestamp) {
+      const date = new Date(timestamp);
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function getChatId(user1, user2) {
+      return [user1, user2].sort().join('_');
+    }
+
+    function loadCurrentUser() {
+      const userStr = localStorage.getItem('bluepay_user');
+      if (!userStr) return false;
+      try {
+        currentUser = JSON.parse(userStr);
+        isAdmin = currentUser.email === 'bluepay863@gmail.com';
+        return true;
+      } catch (e) {
+        showBeautifulAlert("Error loading user data", 'error');
+        return false;
+      }
+    }
+
+    function loadContact() {
+      const contactStr = localStorage.getItem('selected_contact');
+      if (!contactStr) return false;
+      try {
+        currentContact = JSON.parse(contactStr);
+        // Prevent channel from opening in messenger
+        if (currentContact.email === 'bluepay_channel') {
+          window.location.href = 'channel.html';
+          return false;
+        }
+        return true;
+      } catch (e) {
+        showBeautifulAlert("Error loading contact", 'error');
+        return false;
+      }
+    }
+
+    function getDisplayName(email, name) {
+      // If current user is NOT admin, and the contact is the admin → show "BluePay Vendor"
+      if (!isAdmin && email === 'bluepay863@gmail.com') {
+        return 'BluePay Vendor';
+      }
+      // Otherwise, show real name
+      return name || email.split('@')[0];
+    }
+
+    function initChat() {
+      if (!loadCurrentUser()) {
+        window.location.href = 'login.html';
+        return;
+      }
+      if (!loadContact()) {
+        window.location.href = 'friends.html';
+        return;
+      }
+
+      // Set chat ID
+      chatId = getChatId(currentUser.email, currentContact.email);
+
+      // Determine display name based on role
+      const displayName = getDisplayName(currentContact.email, currentContact.name);
+      contactName.textContent = displayName;
+      chatTitle.textContent = displayName;
+
+      // Set status (simplified as "Online" for demo)
+      contactStatus.textContent = 'Online';
+
+      loadMessages();
+      setupEventListeners();
+      markMessagesAsRead();
+    }
+
+    function loadMessages() {
+      const messages = JSON.parse(localStorage.getItem(`chat_${chatId}`) || '[]');
+      renderMessages(messages);
+    }
+
+    function renderMessages(messages) {
+      messagesContainer.innerHTML = '';
+      
+      if (messages.length === 0) {
+        messagesContainer.innerHTML = `
+          <div class="empty-chat">
+            <i class="fas fa-comments"></i>
+            <h3>No messages yet</h3>
+            <p>Start the conversation!</p>
+          </div>
+        `;
+        return;
+      }
+
+      messages.forEach(msg => {
+        const isOutgoing = msg.sender === currentUser.email;
+        const messageElement = document.createElement('div');
+        messageElement.className = `message ${isOutgoing ? 'outgoing' : 'incoming'}`;
+        messageElement.innerHTML = `
+          ${msg.text}
+          <div class="message-time">${formatTime(msg.timestamp)}</div>
+        `;
+        messagesContainer.appendChild(messageElement);
+      });
+
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    function saveMessage(text) {
+      const newMessage = {
+        sender: currentUser.email,
+        text: text,
+        timestamp: new Date().toISOString()
+      };
+
+      const messages = JSON.parse(localStorage.getItem(`chat_${chatId}`) || '[]');
+      messages.push(newMessage);
+      localStorage.setItem(`chat_${chatId}`, JSON.stringify(messages));
+
+      // Update last read for the other user
+      const otherUser = currentContact.email;
+      const otherChatId = getChatId(otherUser, currentUser.email);
+      localStorage.setItem(`last_read_${otherChatId}`, new Date().toISOString());
+
+      return newMessage;
+    }
+
+    function markMessagesAsRead() {
+      localStorage.setItem(`last_read_${chatId}`, new Date().toISOString());
+    }
+
+    function setupEventListeners() {
+      backBtn.addEventListener('click', () => window.location.href = 'friends.html');
+      
+      messageInput.addEventListener('input', () => {
+        sendBtn.disabled = messageInput.value.trim() === '';
+      });
+      
+      sendBtn.addEventListener('click', sendMessage);
+      
+      messageInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+      
+      messageInput.addEventListener('input', autoResizeTextarea);
+    }
+
+    function autoResizeTextarea() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    }
+
+    function sendMessage() {
+      const text = messageInput.value.trim();
+      if (!text) return;
+
+      const newMessage = saveMessage(text);
+      
+      const messageElement = document.createElement('div');
+      messageElement.className = 'message outgoing';
+      messageElement.innerHTML = `
+        ${newMessage.text}
+        <div class="message-time">${formatTime(newMessage.timestamp)}</div>
+      `;
+      messagesContainer.appendChild(messageElement);
+
+      messageInput.value = '';
+      messageInput.style.height = 'auto';
+      sendBtn.disabled = true;
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      
+      showBeautifulAlert('Message sent!', 'success');
+    }
+
+    document.addEventListener('DOMContentLoaded', initChat);
+  </script>
+</body>
+</html>
