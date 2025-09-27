@@ -132,6 +132,25 @@
       text-decoration: underline;
     }
 
+    .resend-btn {
+      background: linear-gradient(135deg, var(--warning-orange), #e07a00);
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      margin: 16px 0;
+      width: 100%;
+      box-shadow: 0 4px 12px rgba(253, 126, 20, 0.3);
+    }
+
+    .resend-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(253, 126, 20, 0.4);
+    }
+
     /* Beautiful Alert Styles */
     .alert-overlay {
       position: fixed;
@@ -232,7 +251,11 @@
 
     <button id="loginBtn">Log In</button>
 
-    <!-- Google button will be enabled/disabled based on signup status -->
+    <!-- Resend Verification Button (Hidden by default) -->
+    <button class="resend-btn" id="resendBtn" style="display:none;">
+      Resend Verification Email
+    </button>
+
     <button class="google-btn" id="googleBtn">
       <span class="google-icon"></span>
       Continue with Google
@@ -263,19 +286,12 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // Check if user is already signed up (in localStorage)
-    const isRegistered = localStorage.getItem('bluepay_registered');
-    const googleBtn = document.getElementById('googleBtn');
-    
-    if (isRegistered) {
-      // Disable Google button if already signed up
-      googleBtn.disabled = true;
-      googleBtn.style.opacity = '0.6';
-      googleBtn.title = "You're already registered. Please log in with your password.";
-    }
+    const loginBtn = document.getElementById('loginBtn');
+    const resendBtn = document.getElementById('resendBtn');
+    let currentUser = null;
 
     // Email/Password Login
-    document.getElementById('loginBtn').addEventListener('click', async function() {
+    loginBtn.addEventListener('click', async function() {
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
 
@@ -288,21 +304,25 @@
 
       try {
         const userCredential = await auth.signInWithEmailAndPassword(email, password);
-        const user = userCredential.user;
+        currentUser = userCredential.user;
 
         // Check email verification
-        if (!user.emailVerified) {
+        if (!currentUser.emailVerified) {
           hideLoadingScreen();
           showBeautifulAlert(
             "Email Not Verified",
-            `Please verify your email.<br>We sent a link to <strong>${email}</strong>.`,
-            "OK"
+            `Please verify your email.<br>We sent a link to <strong>${email}</strong>.<br><br>If you didn't receive it, click the button below to resend.`,
+            "OK",
+            () => {
+              // Show resend button
+              resendBtn.style.display = 'block';
+            }
           );
           return;
         }
 
         // Update Firestore verification status
-        await db.collection('users').doc(user.uid).update({ emailVerified: true });
+        await db.collection('users').doc(currentUser.uid).update({ emailVerified: true });
 
         // Redirect to dashboard
         hideLoadingScreen();
@@ -318,48 +338,68 @@
       }
     });
 
-    // Google Sign-In (only if not registered)
-    if (!isRegistered) {
-      googleBtn.addEventListener('click', async function() {
-        showLoadingScreen("Signing in with Google...");
+    // Resend Verification Email
+    resendBtn.addEventListener('click', async function() {
+      if (!currentUser) return;
+      
+      showLoadingScreen("Sending verification email...");
+      
+      try {
+        await currentUser.sendEmailVerification();
+        hideLoadingScreen();
+        showBeautifulAlert(
+          "Verification Sent!",
+          "We've resent the verification link to your email.<br>Please check your inbox (and spam folder).",
+          "OK"
+        );
+      } catch (error) {
+        hideLoadingScreen();
+        console.error("Resend failed:", error);
+        showBeautifulAlert(
+          "Failed to Resend",
+          "Unable to send verification email. Please try again later.",
+          "OK"
+        );
+      }
+    });
+
+    // Google Sign-In
+    document.getElementById('googleBtn').addEventListener('click', async function() {
+      showLoadingScreen("Signing in with Google...");
+      
+      const provider = new firebase.auth.GoogleAuthProvider();
+      provider.addScope('profile');
+      provider.addScope('email');
+      
+      try {
+        const result = await auth.signInWithPopup(provider);
+        const user = result.user;
         
-        const provider = new firebase.auth.GoogleAuthProvider();
-        provider.addScope('profile');
-        provider.addScope('email');
-        
-        try {
-          const result = await auth.signInWithPopup(provider);
-          const user = result.user;
-          
-          // Check if user exists in Firestore
-          const userDoc = await db.collection('users').doc(user.uid).get();
-          if (!userDoc.exists) {
-            // New Google user — create profile
-            await db.collection('users').doc(user.uid).set({
-              name: user.displayName || user.email.split('@')[0],
-              email: user.email,
-              uid: user.uid,
-              emailVerified: true,
-              balance: 50000.00,
-              signupDate: firebase.firestore.FieldValue.serverTimestamp()
-            });
-          }
-          
-          // Save to localStorage
-          localStorage.setItem('bluepay_registered', 'true');
-          
-          // Redirect to dashboard
-          hideLoadingScreen();
-          window.location.href = "dashboard.html";
-          
-        } catch (error) {
-          hideLoadingScreen();
-          if (error.code !== 'auth/popup-closed-by-user') {
-            showBeautifulAlert("Google Login Failed", "Please try again.", "OK");
-          }
+        // Check if user exists in Firestore
+        const userDoc = await db.collection('users').doc(user.uid).get();
+        if (!userDoc.exists) {
+          // New Google user — create profile
+          await db.collection('users').doc(user.uid).set({
+            name: user.displayName || user.email.split('@')[0],
+            email: user.email,
+            uid: user.uid,
+            emailVerified: true,
+            balance: 50000.00,
+            signupDate: firebase.firestore.FieldValue.serverTimestamp()
+          });
         }
-      });
-    }
+        
+        // Redirect to dashboard
+        hideLoadingScreen();
+        window.location.href = "dashboard.html";
+        
+      } catch (error) {
+        hideLoadingScreen();
+        if (error.code !== 'auth/popup-closed-by-user') {
+          showBeautifulAlert("Google Login Failed", "Please try again.", "OK");
+        }
+      }
+    });
 
     // Beautiful Alert Function
     function showBeautifulAlert(title, message, buttonText, callback = null) {
@@ -391,8 +431,8 @@
 
     // Loading Screen Functions
     function showLoadingScreen(message = "Please wait...") {
-      document.getElementById('loginBtn').disabled = true;
-      if (!isRegistered) googleBtn.disabled = true;
+      loginBtn.disabled = true;
+      document.getElementById('googleBtn').disabled = true;
       
       const screen = document.createElement('div');
       screen.className = 'loading-screen';
@@ -407,8 +447,8 @@
     function hideLoadingScreen() {
       const screen = document.getElementById('loadingScreen');
       if (screen) document.body.removeChild(screen);
-      document.getElementById('loginBtn').disabled = false;
-      if (!isRegistered) googleBtn.disabled = false;
+      loginBtn.disabled = false;
+      document.getElementById('googleBtn').disabled = false;
     }
   </script>
 </body>
