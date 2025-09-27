@@ -132,106 +132,62 @@
       text-decoration: underline;
     }
 
-    /* Alert Overlay */
+    /* Beautiful Alert Styles */
     .alert-overlay {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0, 0, 0, 0.55);
       display: flex;
       justify-content: center;
       align-items: center;
       z-index: 1000;
-      backdrop-filter: blur(5px);
+      backdrop-filter: blur(6px);
     }
 
     .alert {
-      position: relative;
-      background: linear-gradient(135deg, #ffffff, #f0f7ff);
-      color: var(--blue-dark);
-      padding: 50px 40px;
-      border-radius: 28px;
-      box-shadow: 0 25px 70px rgba(26, 115, 232, 0.3);
-      border: 1px solid rgba(26, 115, 232, 0.2);
+      background: white;
+      border-radius: 24px;
+      padding: 40px;
+      width: 90%;
+      max-width: 500px;
       text-align: center;
-      font-size: 17px;
-      animation: fadeInUp 0.6s ease-out;
-      max-width: 90%;
-      font-family: inherit;
-      border-left: 6px solid var(--blue-primary);
+      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(26, 115, 232, 0.15);
     }
 
     .alert h2 {
-      margin: 0 0 24px 0;
-      color: white;
-      background: linear-gradient(135deg, var(--blue-primary), var(--blue-dark));
-      padding: 20px 30px;
-      border-radius: 18px;
-      font-size: 1.8rem;
+      color: var(--blue-primary);
+      margin-bottom: 20px;
+      font-family: 'Montserrat', sans-serif;
       font-weight: 800;
-      box-shadow: 0 5px 20px rgba(26, 115, 232, 0.25);
-      letter-spacing: -0.5px;
+      font-size: 1.7rem;
     }
 
     .alert p {
-      margin: 0 0 30px 0;
-      line-height: 1.7;
+      margin-bottom: 28px;
+      line-height: 1.6;
       color: #444;
-      font-size: 18px;
-      font-weight: 500;
-    }
-
-    .alert strong {
-      color: var(--blue-primary);
-      font-weight: 700;
+      font-size: 1.05rem;
     }
 
     .alert-button {
       background: linear-gradient(135deg, var(--blue-primary), var(--blue-dark));
       color: white;
       border: none;
-      padding: 18px 40px;
+      padding: 14px 32px;
       border-radius: 14px;
+      font-size: 1.05rem;
+      font-weight: 600;
       cursor: pointer;
-      font-size: 18px;
-      font-weight: 700;
-      transition: all 0.3s ease;
-      box-shadow: 0 5px 15px rgba(26, 115, 232, 0.3);
+      transition: all 0.3s;
     }
 
     .alert-button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 7px 20px rgba(26, 115, 232, 0.4);
-    }
-
-    /* Loader Spinner */
-    .loader {
-      display: inline-block;
-      width: 40px;
-      height: 40px;
-      border: 4px solid rgba(26, 115, 232, 0.2);
-      border-radius: 50%;
-      border-top-color: var(--blue-primary);
-      border-bottom-color: var(--blue-primary);
-      animation: spin 1s ease-in-out infinite;
-      margin: 24px auto 30px;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translate(-50%, -60%) scale(0.95);
-      }
-      to {
-        opacity: 1;
-        transform: translate(-50%, -50%) scale(1);
-      }
+      transform: scale(1.03);
+      box-shadow: 0 5px 15px rgba(26, 115, 232, 0.4);
     }
 
     /* Loading Screen */
@@ -241,7 +197,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(255, 255, 255, 0.95);
+      background: rgba(255, 255, 255, 0.96);
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -250,11 +206,19 @@
       backdrop-filter: blur(3px);
     }
 
-    .loading-screen h3 {
-      color: var(--blue-primary);
-      margin-top: 20px;
-      font-size: 18px;
-      font-weight: 600;
+    .loader {
+      display: inline-block;
+      width: 44px;
+      height: 44px;
+      border: 4px solid rgba(26, 115, 232, 0.2);
+      border-radius: 50%;
+      border-top-color: var(--blue-primary);
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
   </style>
 </head>
@@ -268,6 +232,7 @@
 
     <button id="loginBtn">Log In</button>
 
+    <!-- Google button will be enabled/disabled based on signup status -->
     <button class="google-btn" id="googleBtn">
       <span class="google-icon"></span>
       Continue with Google
@@ -291,16 +256,23 @@
       projectId: "my-sign-up-and-login",
       storageBucket: "my-sign-up-and-login.firebasestorage.app",
       messagingSenderId: "1009128333653",
-      appId: "1:1009128333653:web:15c1609ca3fbd4720c0fdc",
-      measurementId: "G-2SS5J1Y13C"
+      appId: "1:1009128333653:web:15c1609ca3fbd4720c0fdc"
     };
 
     const app = firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // ✅ NO AUTO-REDIRECT ON AUTH STATE CHANGE
-    // We only show login form
+    // Check if user is already signed up (in localStorage)
+    const isRegistered = localStorage.getItem('bluepay_registered');
+    const googleBtn = document.getElementById('googleBtn');
+    
+    if (isRegistered) {
+      // Disable Google button if already signed up
+      googleBtn.disabled = true;
+      googleBtn.style.opacity = '0.6';
+      googleBtn.title = "You're already registered. Please log in with your password.";
+    }
 
     // Email/Password Login
     document.getElementById('loginBtn').addEventListener('click', async function() {
@@ -329,23 +301,13 @@
           return;
         }
 
-        // ✅ Save to localStorage (optional)
-        localStorage.setItem('bluepay_user_uid', user.uid);
-        
-        // ✅ Update Firestore verification status
+        // Update Firestore verification status
         await db.collection('users').doc(user.uid).update({ emailVerified: true });
 
-        // ✅ SHOW SUCCESS — NO REDIRECT
+        // Redirect to dashboard
         hideLoadingScreen();
-        showBeautifulAlert(
-          "Login Successful!",
-          `Welcome back!<br>You're now logged in as <strong>${user.email}</strong>.`,
-          "Go to Dashboard",
-          () => {
-            window.location.href = "dashboard.html";
-          }
-        );
-
+        window.location.href = "dashboard.html";
+        
       } catch (error) {
         hideLoadingScreen();
         let msg = "Incorrect email or password.";
@@ -356,55 +318,50 @@
       }
     });
 
-    // Google Sign-In
-    document.getElementById('googleBtn').addEventListener('click', async function() {
-      showLoadingScreen("Signing in with Google...");
-      
-      const provider = new firebase.auth.GoogleAuthProvider();
-      provider.addScope('profile');
-      provider.addScope('email');
-      
-      try {
-        const result = await auth.signInWithPopup(provider);
-        const user = result.user;
+    // Google Sign-In (only if not registered)
+    if (!isRegistered) {
+      googleBtn.addEventListener('click', async function() {
+        showLoadingScreen("Signing in with Google...");
         
-        // Check if user exists in Firestore
-        const userDoc = await db.collection('users').doc(user.uid).get();
-        if (!userDoc.exists) {
-          // New Google user — create profile
-          await db.collection('users').doc(user.uid).set({
-            name: user.displayName || user.email.split('@')[0],
-            email: user.email,
-            uid: user.uid,
-            emailVerified: true,
-            balance: 50000.00,
-            signupDate: firebase.firestore.FieldValue.serverTimestamp()
-          });
-        }
+        const provider = new firebase.auth.GoogleAuthProvider();
+        provider.addScope('profile');
+        provider.addScope('email');
         
-        // ✅ Save to localStorage
-        localStorage.setItem('bluepay_user_uid', user.uid);
-        
-        // ✅ SHOW SUCCESS — NO REDIRECT
-        hideLoadingScreen();
-        showBeautifulAlert(
-          "Google Login Successful!",
-          `Welcome, <strong>${user.displayName || user.email}</strong>!`,
-          "Go to Dashboard",
-          () => {
-            window.location.href = "dashboard.html";
+        try {
+          const result = await auth.signInWithPopup(provider);
+          const user = result.user;
+          
+          // Check if user exists in Firestore
+          const userDoc = await db.collection('users').doc(user.uid).get();
+          if (!userDoc.exists) {
+            // New Google user — create profile
+            await db.collection('users').doc(user.uid).set({
+              name: user.displayName || user.email.split('@')[0],
+              email: user.email,
+              uid: user.uid,
+              emailVerified: true,
+              balance: 50000.00,
+              signupDate: firebase.firestore.FieldValue.serverTimestamp()
+            });
           }
-        );
-        
-      } catch (error) {
-        hideLoadingScreen();
-        if (error.code !== 'auth/popup-closed-by-user') {
-          showBeautifulAlert("Google Login Failed", "Please try again.", "OK");
+          
+          // Save to localStorage
+          localStorage.setItem('bluepay_registered', 'true');
+          
+          // Redirect to dashboard
+          hideLoadingScreen();
+          window.location.href = "dashboard.html";
+          
+        } catch (error) {
+          hideLoadingScreen();
+          if (error.code !== 'auth/popup-closed-by-user') {
+            showBeautifulAlert("Google Login Failed", "Please try again.", "OK");
+          }
         }
-      }
-    });
+      });
+    }
 
-    // Alert & Loading Functions
+    // Beautiful Alert Function
     function showBeautifulAlert(title, message, buttonText, callback = null) {
       const overlay = document.createElement('div');
       overlay.className = 'alert-overlay';
@@ -418,22 +375,24 @@
       overlay.appendChild(alertDiv);
       document.body.appendChild(overlay);
 
-      const btn = alertDiv.querySelector('.alert-button');
-      btn.onclick = () => {
+      const button = alertDiv.querySelector('.alert-button');
+      button.addEventListener('click', function() {
         document.body.removeChild(overlay);
         if (callback) callback();
-      };
-      overlay.onclick = (e) => {
+      });
+      
+      overlay.addEventListener('click', function(e) {
         if (e.target === overlay) {
           document.body.removeChild(overlay);
           if (callback) callback();
         }
-      };
+      });
     }
 
+    // Loading Screen Functions
     function showLoadingScreen(message = "Please wait...") {
       document.getElementById('loginBtn').disabled = true;
-      document.getElementById('googleBtn').disabled = true;
+      if (!isRegistered) googleBtn.disabled = true;
       
       const screen = document.createElement('div');
       screen.className = 'loading-screen';
@@ -449,7 +408,7 @@
       const screen = document.getElementById('loadingScreen');
       if (screen) document.body.removeChild(screen);
       document.getElementById('loginBtn').disabled = false;
-      document.getElementById('googleBtn').disabled = false;
+      if (!isRegistered) googleBtn.disabled = false;
     }
   </script>
 </body>
