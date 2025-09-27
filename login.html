@@ -132,25 +132,6 @@
       text-decoration: underline;
     }
 
-    .resend-btn {
-      background: linear-gradient(135deg, var(--warning-orange), #e07a00);
-      color: white;
-      border: none;
-      padding: 14px;
-      border-radius: 14px;
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-      margin: 16px 0;
-      width: 100%;
-      box-shadow: 0 4px 12px rgba(253, 126, 20, 0.3);
-    }
-
-    .resend-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(253, 126, 20, 0.4);
-    }
-
     /* Beautiful Alert Styles */
     .alert-overlay {
       position: fixed;
@@ -251,11 +232,6 @@
 
     <button id="loginBtn">Log In</button>
 
-    <!-- Resend Verification Button (Hidden by default) -->
-    <button class="resend-btn" id="resendBtn" style="display:none;">
-      Resend Verification Email
-    </button>
-
     <button class="google-btn" id="googleBtn">
       <span class="google-icon"></span>
       Continue with Google
@@ -287,10 +263,8 @@
     const db = firebase.firestore();
 
     const loginBtn = document.getElementById('loginBtn');
-    const resendBtn = document.getElementById('resendBtn');
-    let currentUser = null;
 
-    // Email/Password Login
+    // Email/Password Login (NO VERIFICATION REQUIRED)
     loginBtn.addEventListener('click', async function() {
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
@@ -304,29 +278,36 @@
 
       try {
         const userCredential = await auth.signInWithEmailAndPassword(email, password);
-        currentUser = userCredential.user;
+        const user = userCredential.user;
 
-        // Check email verification
-        if (!currentUser.emailVerified) {
+        // Check if user exists in Firestore
+        const userDoc = await db.collection('users').doc(user.uid).get();
+        
+        if (!userDoc.exists) {
+          // NEW USER - Create profile with 50,000 balance
+          await db.collection('users').doc(user.uid).set({
+            name: email.split('@')[0],
+            email: email,
+            uid: user.uid,
+            balance: 50000.00,
+            signupDate: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          
+          // Show welcome message
           hideLoadingScreen();
           showBeautifulAlert(
-            "Email Not Verified",
-            `Please verify your email.<br>We sent a link to <strong>${email}</strong>.<br><br>If you didn't receive it, click the button below to resend.`,
-            "OK",
+            "Welcome to BluePay!",
+            `Hello, <strong>${email.split('@')[0]}</strong>!<br>You've received a ₦50,000 welcome bonus!`,
+            "Go to Dashboard",
             () => {
-              // Show resend button
-              resendBtn.style.display = 'block';
+              window.location.href = "dashboard.html";
             }
           );
-          return;
+        } else {
+          // EXISTING USER - Redirect to dashboard
+          hideLoadingScreen();
+          window.location.href = "dashboard.html";
         }
-
-        // Update Firestore verification status
-        await db.collection('users').doc(currentUser.uid).update({ emailVerified: true });
-
-        // Redirect to dashboard
-        hideLoadingScreen();
-        window.location.href = "dashboard.html";
         
       } catch (error) {
         hideLoadingScreen();
@@ -338,32 +319,7 @@
       }
     });
 
-    // Resend Verification Email
-    resendBtn.addEventListener('click', async function() {
-      if (!currentUser) return;
-      
-      showLoadingScreen("Sending verification email...");
-      
-      try {
-        await currentUser.sendEmailVerification();
-        hideLoadingScreen();
-        showBeautifulAlert(
-          "Verification Sent!",
-          "We've resent the verification link to your email.<br>Please check your inbox (and spam folder).",
-          "OK"
-        );
-      } catch (error) {
-        hideLoadingScreen();
-        console.error("Resend failed:", error);
-        showBeautifulAlert(
-          "Failed to Resend",
-          "Unable to send verification email. Please try again later.",
-          "OK"
-        );
-      }
-    });
-
-    // Google Sign-In
+    // Google Sign-In (NO VERIFICATION REQUIRED)
     document.getElementById('googleBtn').addEventListener('click', async function() {
       showLoadingScreen("Signing in with Google...");
       
@@ -378,20 +334,30 @@
         // Check if user exists in Firestore
         const userDoc = await db.collection('users').doc(user.uid).get();
         if (!userDoc.exists) {
-          // New Google user — create profile
+          // NEW GOOGLE USER - Create profile with 50,000 balance
           await db.collection('users').doc(user.uid).set({
             name: user.displayName || user.email.split('@')[0],
             email: user.email,
             uid: user.uid,
-            emailVerified: true,
             balance: 50000.00,
             signupDate: firebase.firestore.FieldValue.serverTimestamp()
           });
+          
+          // Show welcome message
+          hideLoadingScreen();
+          showBeautifulAlert(
+            "Welcome to BluePay!",
+            `Hello, <strong>${user.displayName || user.email.split('@')[0]}</strong>!<br>You've received a ₦50,000 welcome bonus!`,
+            "Go to Dashboard",
+            () => {
+              window.location.href = "dashboard.html";
+            }
+          );
+        } else {
+          // EXISTING GOOGLE USER - Redirect to dashboard
+          hideLoadingScreen();
+          window.location.href = "dashboard.html";
         }
-        
-        // Redirect to dashboard
-        hideLoadingScreen();
-        window.location.href = "dashboard.html";
         
       } catch (error) {
         hideLoadingScreen();
