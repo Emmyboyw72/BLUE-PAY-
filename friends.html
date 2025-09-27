@@ -19,6 +19,7 @@
       --text-gray: #2d2d2d;
       --border-gray: #e0e6ed;
       --bg-light: #fafbff;
+      --red-badge: #ea4335;
     }
 
     * {
@@ -126,6 +127,9 @@
       color: #5f6368;
       font-size: 0.95rem;
       line-height: 1.5;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border-gray);
     }
 
     /* Friend Item */
@@ -195,8 +199,25 @@
       font-weight: 600;
     }
 
+    .message-preview {
+      color: #5f6368;
+      font-size: 0.92rem;
+      line-height: 1.4;
+      margin-top: 8px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .message-time {
+      font-size: 0.78rem;
+      color: #888;
+      margin-top: 4px;
+    }
+
     .message-badge {
-      background: var(--blue-primary);
+      background: var(--red-badge);
       color: white;
       width: 26px;
       height: 26px;
@@ -208,6 +229,7 @@
       font-weight: bold;
       margin-left: 14px;
       flex-shrink: 0;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     }
 
     /* Empty State */
@@ -399,8 +421,15 @@
       window.location.href = `messenger.html?to=${uid}`;
     }
 
+    // Format timestamp
+    function formatTime(timestamp) {
+      if (!timestamp) return "";
+      const date = new Date(timestamp.seconds * 1000);
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
     // 🎨 Render UI
-    function render(friends, followerCount, isAdmin) {
+    function render(friendsWithMessages, followerCount, isAdmin) {
       const container = document.getElementById('friendsContainer');
       container.innerHTML = '';
 
@@ -412,13 +441,13 @@
           <div class="channel-title">BluePay Channel</div>
           <div class="followers-badge">${followerCount} followers</div>
         </div>
-        <div class="last-message">Official announcements and community updates</div>
+        <div class="last-message">💬 Official announcements and updates</div>
       `;
       channelCard.onclick = goToChannel;
       container.appendChild(channelCard);
 
       // 👥 Friends List
-      if (friends.length === 0) {
+      if (friendsWithMessages.length === 0) {
         container.innerHTML += `
           <div class="empty-state">
             <h3>Your network is empty</h3>
@@ -428,10 +457,18 @@
         return;
       }
 
-      friends.forEach(f => {
+      // Sort by latest message time (newest first)
+      friendsWithMessages.sort((a, b) => {
+        const timeA = a.lastMessage?.timestamp?.seconds || 0;
+        const timeB = b.lastMessage?.timestamp?.seconds || 0;
+        return timeB - timeA; // Newest first
+      });
+
+      friendsWithMessages.forEach(f => {
         const isVendor = f.email === ADMIN_EMAIL;
         const displayName = isVendor ? "BluePay Vendor" : f.name;
         const role = isVendor ? "Vendor" : "";
+        const hasMessage = f.lastMessage && f.lastMessage.text;
 
         const item = document.createElement('div');
         item.className = 'friend-item';
@@ -441,38 +478,70 @@
             <div class="friend-name">${displayName}</div>
             ${isAdmin && !isVendor ? `<div class="friend-email">${f.email}</div>` : ''}
             ${role ? `<div class="friend-role">${role}</div>` : ''}
+            ${hasMessage ? `
+              <div class="message-preview">${f.lastMessage.text}</div>
+              <div class="message-time">${formatTime(f.lastMessage.timestamp)}</div>
+            ` : ''}
           </div>
-          <div class="message-badge">!</div>
+          ${hasMessage ? `<div class="message-badge">!</div>` : ''}
         `;
         item.onclick = () => goToMessenger(f.uid);
         container.appendChild(item);
       });
     }
 
-    // 🔄 Load Friends
-    async function loadFriends() {
+    // 🔄 Load Friends with Last Messages
+    async function loadFriendsWithMessages() {
       try {
-        const snap = await db.collection('users').get();
-
-        const friends = [];
+        // Get all users
+        const usersSnap = await db.collection('users').get();
+        const users = {};
         let followers = 0;
 
-        snap.forEach(doc => {
+        usersSnap.forEach(doc => {
           const u = doc.data();
           if (u.uid === currentUser.uid) return;
+          users[u.uid] = u;
           followers++;
-          
-          // Admin sees ALL users
-          if (currentUser.email === ADMIN_EMAIL) {
-            friends.push(u);
-          } 
-          // Regular users see ONLY the admin (as vendor)
-          else if (u.email === ADMIN_EMAIL) {
-            friends.push(u);
-          }
         });
 
-        render(friends, followers, currentUser.email === ADMIN_EMAIL);
+        // Get last message for each user chat
+        const friendsWithMessages = [];
+        const chatIds = Object.keys(users).map(uid => {
+          const ids = [currentUser.uid, uid].sort();
+          return ids.join('_');
+        });
+
+        // Load last message for each chat
+        const promises = Object.keys(users).map(async (uid) => {
+          const chatId = [currentUser.uid, uid].sort().join('_');
+          const messagesSnap = await db.collection('chats').doc(chatId).collection('messages')
+            .orderBy('timestamp', 'desc')
+            .limit(1)
+            .get();
+          
+          let lastMessage = null;
+          if (!messagesSnap.empty) {
+            lastMessage = messagesSnap.docs[0].data();
+          }
+          
+          return {
+            ...users[uid],
+            lastMessage: lastMessage
+          };
+        });
+
+        const results = await Promise.all(promises);
+        
+        // Admin sees all users, regular users see only vendor
+        if (currentUser.email === ADMIN_EMAIL) {
+          results.forEach(user => friendsWithMessages.push(user));
+        } else {
+          const vendor = results.find(u => u.email === ADMIN_EMAIL);
+          if (vendor) friendsWithMessages.push(vendor);
+        }
+
+        render(friendsWithMessages, followers, currentUser.email === ADMIN_EMAIL);
       } catch (e) {
         console.error("Error loading friends:", e);
         showBeautifulAlert("Error", "Failed to load friends. Please refresh.");
@@ -488,23 +557,22 @@
 
       currentUser = { uid: user.uid, email: user.email };
       showLoading();
-      await loadFriends();
+      await loadFriendsWithMessages();
       hideLoading();
 
-      // 🔔 Real-time listener (admin only)
-      if (currentUser.email === ADMIN_EMAIL) {
-        const unsub = db.collection('users')
-          .onSnapshot(snap => {
-            let hasNew = false;
-            snap.docChanges().forEach(change => {
-              if (change.type === 'added' && change.doc.id !== currentUser.uid) {
-                hasNew = true;
-              }
-            });
-            if (hasNew) loadFriends();
-          });
-        window.addEventListener('beforeunload', unsub);
-      }
+      // 🔔 Real-time updates
+      const unsubUsers = db.collection('users')
+        .onSnapshot(() => loadFriendsWithMessages());
+      
+      // Listen for new messages
+      const unsubChats = db.collectionGroup('messages')
+        .where('recipientId', '==', currentUser.uid)
+        .onSnapshot(() => loadFriendsWithMessages());
+      
+      window.addEventListener('beforeunload', () => {
+        unsubUsers();
+        unsubChats();
+      });
     });
   </script>
 </body>
