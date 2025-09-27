@@ -3,790 +3,425 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>BluePay Friends</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  
+  <meta name="format-detection" content="telephone=no">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Friends • BluePay</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
       --blue-primary: #1a73e8;
       --blue-dark: #0d47a1;
+      --blue-light: #e8f0fe;
       --white: #ffffff;
-      --text-gray: #333333;
-      --border-gray: #dce0e6;
-      --light-gray: #f5f5f5;
-      --success-green: #34a853;
-      --warning-yellow: #fbbc05;
-      --error-red: #ea4335;
+      --text-gray: #2d2d2d;
+      --border-gray: #e0e6ed;
+      --bg-light: #fafbff;
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
     body {
-      background-color: #f8f9fa;
+      background-color: var(--bg-light);
       color: var(--text-gray);
       min-height: 100vh;
-      position: relative;
+      padding: 0;
+      margin: 0;
       touch-action: manipulation;
-      -webkit-text-size-adjust: none;
-      -ms-text-size-adjust: none;
-      padding-bottom: 20px;
+      overflow-x: hidden;
     }
 
+    /* Elegant Header */
     .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem 1.5rem;
-      background-color: var(--blue-primary);
+      background: linear-gradient(120deg, var(--blue-primary), var(--blue-dark));
       color: white;
+      padding: 18px 24px;
       position: sticky;
       top: 0;
       z-index: 100;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 20px rgba(26, 115, 232, 0.22);
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
 
     .header h1 {
-      font-size: 1.3rem;
-      font-weight: 600;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 2.1rem;
+      font-style: italic;
+      letter-spacing: -0.8px;
+      background: linear-gradient(to right, #ffffff, #e0f0ff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
     }
 
-    .add-contact-btn {
-      background-color: var(--white);
-      color: var(--blue-primary);
-      border: none;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    .container {
+      padding: 24px;
+      max-width: 620px;
+      margin: 0 auto;
     }
 
-    .search-container {
-      padding: 1rem 1.5rem;
-      background-color: white;
-      border-bottom: 1px solid var(--border-gray);
-      display: none;
-    }
-
-    .search-container.active {
-      display: block;
-    }
-
-    .search-input {
-      width: 100%;
-      padding: 12px 16px;
-      border: 1px solid var(--border-gray);
-      border-radius: 24px;
-      font-size: 1rem;
-      outline: none;
-    }
-
-    .search-input:focus {
-      border-color: var(--blue-primary);
-      box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
-    }
-
-    .search-result {
-      padding: 12px 16px;
-      margin-top: 12px;
-      background-color: white;
-      border-radius: 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    }
-
-    .search-result h3 {
-      font-size: 1.1rem;
-      margin-bottom: 6px;
-    }
-
-    .search-result p {
-      font-size: 0.9rem;
-      margin-bottom: 12px;
-    }
-
-    .status-registered {
-      color: var(--success-green);
-      font-weight: 600;
-    }
-
-    .status-not-registered {
-      color: var(--error-red);
-      font-weight: 600;
-    }
-
-    .add-user-btn {
-      background-color: var(--blue-primary);
-      color: white;
-      border: none;
+    /* BluePay Channel Card */
+    .channel-card {
+      background: white;
       border-radius: 20px;
-      padding: 8px 20px;
-      font-weight: 600;
-      font-size: 0.9rem;
+      padding: 22px;
+      margin-bottom: 26px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.07);
+      border: 1px solid var(--border-gray);
       cursor: pointer;
-      transition: background-color 0.2s;
-    }
-
-    .add-user-btn:hover {
-      background-color: var(--blue-dark);
-    }
-
-    .add-user-btn:disabled {
-      background-color: #b0b0b0;
-      cursor: not-allowed;
-    }
-
-    .friends-container {
-      padding: 1rem;
-      max-width: 800px;
-      margin: 0 auto;
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 40px 20px;
-      color: #666;
-    }
-
-    .empty-state i {
-      font-size: 3rem;
-      color: var(--blue-primary);
-      margin-bottom: 20px;
-      opacity: 0.7;
-    }
-
-    .empty-state h3 {
-      font-size: 1.4rem;
-      margin-bottom: 15px;
-      color: var(--blue-primary);
-    }
-
-    .empty-state p {
-      line-height: 1.6;
-      max-width: 500px;
-      margin: 0 auto;
-    }
-
-    .friend-item {
-      display: flex;
-      align-items: center;
-      padding: 16px;
-      background-color: white;
-      border-radius: 16px;
-      margin-bottom: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      transition: transform 0.2s, box-shadow 0.2s;
+      transition: all 0.3s;
       position: relative;
       overflow: hidden;
+    }
+
+    .channel-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 5px;
+      background: var(--blue-primary);
+    }
+
+    .channel-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px rgba(26, 115, 232, 0.18);
+    }
+
+    .channel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .channel-title {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 1.5rem;
+      color: var(--blue-primary);
+    }
+
+    .followers-badge {
+      background: linear-gradient(135deg, var(--blue-primary), #4285f4);
+      color: white;
+      padding: 5px 14px;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 0.92rem;
+    }
+
+    .last-message {
+      color: #5f6368;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    /* Friend Item */
+    .friend-item {
+      display: flex;
+      align-items: flex-start;
+      padding: 18px;
+      background: white;
+      border-radius: 18px;
+      margin-bottom: 18px;
+      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
       cursor: pointer;
+      transition: all 0.25s;
+      border-left: 4px solid transparent;
     }
 
     .friend-item:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+      background: var(--blue-light);
+      border-left-color: var(--blue-primary);
+      transform: translateX(4px);
     }
 
-    .friend-avatar {
-      width: 56px;
-      height: 56px;
+    .avatar {
+      width: 52px;
+      height: 52px;
       border-radius: 50%;
-      background-color: var(--blue-primary);
+      background: linear-gradient(135deg, var(--blue-primary), var(--blue-dark));
       display: flex;
       align-items: center;
       justify-content: center;
       color: white;
-      font-size: 1.4rem;
-      margin-right: 16px;
+      font-weight: bold;
+      font-size: 1.2rem;
+      margin-right: 18px;
       flex-shrink: 0;
+      box-shadow: 0 3px 8px rgba(26, 115, 232, 0.25);
     }
 
     .friend-info {
       flex: 1;
+      min-width: 0;
     }
 
     .friend-name {
-      font-size: 1.1rem;
       font-weight: 600;
+      font-size: 1.15rem;
       margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    .friend-preview {
-      font-size: 0.9rem;
-      color: #666;
+    .friend-email {
+      font-size: 0.88rem;
+      color: #5f6368;
       margin-bottom: 6px;
-      display: flex;
-      justify-content: space-between;
+      font-family: 'Inter', monospace;
     }
 
-    .friend-tag {
+    .friend-role {
       display: inline-block;
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 0.8rem;
-      font-weight: 600;
-    }
-
-    .channel-tag {
-      background-color: rgba(26, 115, 232, 0.15);
+      background: rgba(26, 115, 232, 0.12);
       color: var(--blue-primary);
-    }
-
-    .vendor-tag {
-      background-color: rgba(52, 168, 83, 0.15);
-      color: var(--success-green);
-    }
-
-    .user-tag {
-      background-color: rgba(108, 117, 125, 0.15);
-      color: #6c757d;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 0.82rem;
+      font-weight: 600;
     }
 
     .message-badge {
-      background-color: var(--blue-primary);
+      background: var(--blue-primary);
       color: white;
-      min-width: 20px;
-      height: 20px;
+      width: 26px;
+      height: 26px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.7rem;
+      font-size: 0.8rem;
       font-weight: bold;
-      padding: 0 4px;
+      margin-left: 14px;
+      flex-shrink: 0;
     }
 
-    /* Beautiful Alert */
-    .beautiful-alert {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%) translateY(-100%);
-      background: linear-gradient(135deg, var(--blue-primary), var(--blue-dark));
-      color: white;
-      padding: 16px 24px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      z-index: 2000;
-      font-weight: 500;
-      transition: transform 0.3s ease-out;
-      max-width: 90%;
+    /* Empty State */
+    .empty-state {
       text-align: center;
+      padding: 50px 20px;
+      color: #777;
     }
 
-    .beautiful-alert.show {
-      transform: translateX(-50%) translateY(0);
-    }
-
-    .beautiful-alert.error {
-      background: linear-gradient(135deg, var(--error-red), #c53929);
-    }
-
-    .beautiful-alert.success {
-      background: linear-gradient(135deg, var(--success-green), #2a8c44);
-    }
-
-    .beautiful-alert.warning {
-      background: linear-gradient(135deg, var(--warning-yellow), #e0a800);
-    }
-
-    /* Loading spinner */
-    .loading {
-      text-align: center;
-      padding: 40px;
+    .empty-state h3 {
       color: var(--blue-primary);
+      margin-bottom: 12px;
     }
 
-    .loading i {
-      font-size: 2rem;
+    /* Loading Screen */
+    .loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.96);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+
+    .loader {
+      width: 44px;
+      height: 44px;
+      border: 4px solid rgba(26, 115, 232, 0.2);
+      border-top-color: var(--blue-primary);
+      border-radius: 50%;
       animation: spin 1s linear infinite;
+      margin-bottom: 20px;
     }
 
     @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    /* Responsive */
-    @media (max-width: 600px) {
-      .header {
-        padding: 0.8rem 1rem;
-      }
-      
-      .friend-item {
-        padding: 14px;
-      }
-      
-      .search-container {
-        padding: 1rem;
-      }
+      to { transform: rotate(360deg); }
     }
   </style>
 </head>
 <body>
-  <!-- Header -->
   <div class="header">
-    <h1>Friends</h1>
-    <button class="add-contact-btn" id="addContactBtn">
-      <i class="fas fa-plus"></i>
-    </button>
+    <h1>BluePay</h1>
   </div>
 
-  <!-- Search Container -->
-  <div class="search-container" id="searchContainer">
-    <input type="email" class="search-input" id="searchInput" placeholder="Enter Gmail address to search...">
-    <div id="searchResult"></div>
+  <div class="container" id="friendsContainer">
+    <!-- Content loaded by JS -->
   </div>
 
-  <!-- Friends List -->
-  <div class="friends-container" id="friendsContainer">
-    <div class="loading">
-      <i class="fas fa-spinner"></i>
-      <p>Loading friends...</p>
-    </div>
-  </div>
-
-  <!-- Beautiful Alert -->
-  <div class="beautiful-alert" id="beautifulAlert">Alert message</div>
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/12.2.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.2.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore-compat.js"></script>
 
   <script>
-    // ======== FIREBASE CONFIG ========
+    // 🔑 Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyCusJ_rFuOWwy1QFZedtyJr7igCeiIg3a0",
       authDomain: "my-sign-up-and-login.firebaseapp.com",
       projectId: "my-sign-up-and-login",
       storageBucket: "my-sign-up-and-login.firebasestorage.app",
       messagingSenderId: "1009128333653",
-      appId: "1:1009128333653:web:15c1609ca3fbd4720c0fdc",
-      measurementId: "G-2SS5J1Y13C"
+      appId: "1:1009128333653:web:15c1609ca3fbd4720c0fdc"
     };
 
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    const app = firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
+    const db = firebase.firestore();
+    const ADMIN_EMAIL = "bluepay863@gmail.com";
 
-    // DOM Elements
-    const addContactBtn = document.getElementById('addContactBtn');
-    const searchContainer = document.getElementById('searchContainer');
-    const searchInput = document.getElementById('searchInput');
-    const searchResult = document.getElementById('searchResult');
-    const friendsContainer = document.getElementById('friendsContainer');
-    const beautifulAlert = document.getElementById('beautifulAlert');
-
-    // Current user
     let currentUser = null;
-    let isAdmin = false;
-    let allFirebaseUsers = [];
 
-    // Show beautiful alert
-    function showBeautifulAlert(message, type = 'info') {
-      beautifulAlert.textContent = message;
-      beautifulAlert.className = 'beautiful-alert ' + type;
-      beautifulAlert.classList.add('show');
-      
-      setTimeout(() => {
-        beautifulAlert.classList.remove('show');
-      }, 3000);
+    // ✨ Helpers
+    function getInitials(name) {
+      return name.trim().charAt(0).toUpperCase();
     }
 
-    // Get last message preview
-    function getMessagePreview(messages) {
-      if (!messages || messages.length === 0) return '';
-      const lastMessage = messages[messages.length - 1];
-      const text = lastMessage.text || '';
-      return text.length > 30 ? text.substring(0, 30) + '...' : text;
+    function showLoading() {
+      document.body.insertAdjacentHTML('beforeend', `
+        <div class="loading-screen" id="loadingScreen">
+          <div class="loader"></div>
+          <div>Loading your network...</div>
+        </div>
+      `);
     }
 
-    // Get unread count
-    function getUnreadCount(messages, lastRead) {
-      if (!messages || messages.length === 0) return 0;
-      if (!lastRead) return messages.length;
-      
-      const lastReadTime = new Date(lastRead).getTime();
-      return messages.filter(msg => new Date(msg.timestamp).getTime() > lastReadTime).length;
+    function hideLoading() {
+      const el = document.getElementById('loadingScreen');
+      if (el) el.remove();
     }
 
-    // Get chat ID
-    function getChatId(user1, user2) {
-      return [user1, user2].sort().join('_');
+    // 🖱️ Navigation
+    function goToChannel() {
+      window.location.href = 'channel.html';
     }
 
-    // Load current user from localStorage
-    function loadCurrentUser() {
-      const userStr = localStorage.getItem('bluepay_user');
-      if (userStr) {
-        try {
-          currentUser = JSON.parse(userStr);
-          isAdmin = currentUser.email === 'bluepay863@gmail.com';
-          return true;
-        } catch (e) {
-          console.error("Error parsing user data", e);
-          showBeautifulAlert("Error loading user data. Please log in again.", 'error');
-          window.location.href = 'login.html';
-          return false;
-        }
+    function goToMessenger(uid) {
+      window.location.href = `messenger.html?to=${uid}`;
+    }
+
+    // 🎨 Render UI
+    function render(friends, followerCount, isAdmin) {
+      const container = document.getElementById('friendsContainer');
+      container.innerHTML = '';
+
+      // 📣 BluePay Channel (visible to ALL)
+      const channelCard = document.createElement('div');
+      channelCard.className = 'channel-card';
+      channelCard.innerHTML = `
+        <div class="channel-header">
+          <div class="channel-title">BluePay Channel</div>
+          <div class="followers-badge">${followerCount} followers</div>
+        </div>
+        <div class="last-message">Official announcements and community updates</div>
+      `;
+      channelCard.onclick = goToChannel;
+      container.appendChild(channelCard);
+
+      // 👥 Friends List
+      if (friends.length === 0) {
+        container.innerHTML += `
+          <div class="empty-state">
+            <h3>Your network is empty</h3>
+            <p>New users will appear here once they join</p>
+          </div>
+        `;
+        return;
       }
-      
-      window.location.href = 'login.html';
-      return false;
+
+      friends.forEach(f => {
+        const isVendor = f.email === ADMIN_EMAIL;
+        const displayName = isVendor ? "BluePay Vendor" : f.name;
+        const role = isVendor ? "Vendor" : "";
+
+        const item = document.createElement('div');
+        item.className = 'friend-item';
+        item.innerHTML = `
+          <div class="avatar">${getInitials(displayName)}</div>
+          <div class="friend-info">
+            <div class="friend-name">${displayName}</div>
+            ${isAdmin && !isVendor ? `<div class="friend-email">${f.email}</div>` : ''}
+            ${role ? `<div class="friend-role">${role}</div>` : ''}
+          </div>
+          <div class="message-badge">!</div>
+        `;
+        item.onclick = () => goToMessenger(f.uid);
+        container.appendChild(item);
+      });
     }
 
-    // Fetch all users from Firebase
-    async function fetchAllUsersFromFirebase() {
+    // 🔄 Load Friends
+    async function loadFriends() {
       try {
-        const usersSnapshot = await db.collection('users').get();
-        allFirebaseUsers = [];
-        
-        usersSnapshot.forEach(doc => {
-          const userData = doc.data();
-          allFirebaseUsers.push({
-            email: userData.email,
-            name: userData.name || userData.email.split('@')[0],
-            timestamp: userData.timestamp || new Date().toISOString()
-          });
-        });
-        
-        // Ensure current user is in the list
-        const currentUserExists = allFirebaseUsers.some(user => user.email === currentUser.email);
-        if (!currentUserExists) {
-          allFirebaseUsers.push({
-            email: currentUser.email,
-            name: currentUser.name || currentUser.email.split('@')[0],
-            timestamp: new Date().toISOString()
-          });
-        }
-        
-        return allFirebaseUsers;
-      } catch (error) {
-        console.error("Error fetching users from Firebase:", error);
-        showBeautifulAlert("Failed to load users. Please try again.", 'error');
-        return [];
-      }
-    }
+        const snap = await db.collection('users')
+          .where('emailVerified', '==', true)
+          .get();
 
-    // Check if user is registered (in Firebase)
-    function isUserRegistered(email) {
-      return allFirebaseUsers.some(user => user.email === email);
-    }
+        const friends = [];
+        let followers = 0;
 
-    // Get user details from Firebase data
-    function getUserDetails(email) {
-      return allFirebaseUsers.find(user => user.email === email);
-    }
+        snap.forEach(doc => {
+          const u = doc.data();
+          if (u.uid === currentUser.uid) return; // skip self
+          followers++;
 
-    // Get chat messages from localStorage
-    function getChatMessages(partnerEmail) {
-      const chatId = getChatId(currentUser.email, partnerEmail);
-      return JSON.parse(localStorage.getItem(`chat_${chatId}`) || '[]');
-    }
-
-    // Get last read time from localStorage
-    function getLastReadTime(partnerEmail) {
-      const chatId = getChatId(currentUser.email, partnerEmail);
-      return localStorage.getItem(`last_read_${chatId}`);
-    }
-
-    // Add user to contacts (local storage only)
-    function addUserToContacts(email) {
-      if (!isUserRegistered(email)) {
-        showBeautifulAlert("This user is not registered with BluePay!", 'error');
-        return false;
-      }
-      
-      // Get existing contacts
-      const contacts = JSON.parse(localStorage.getItem('user_contacts') || '[]');
-      
-      // Check if already exists
-      if (contacts.some(contact => contact.email === email)) {
-        showBeautifulAlert("This user is already in your contacts!", 'warning');
-        return false;
-      }
-      
-      // Add new contact
-      const userDetails = getUserDetails(email);
-      contacts.push({
-        email: email,
-        name: userDetails.name,
-        nickname: '',
-        isVendor: false,
-        dateAdded: new Date().toISOString()
-      });
-      
-      localStorage.setItem('user_contacts', JSON.stringify(contacts));
-      showBeautifulAlert("User added to contacts successfully!", 'success');
-      return true;
-    }
-
-    // Render friends list for admin (sees all registered users)
-    function renderAdminFriendsList() {
-      friendsContainer.innerHTML = '';
-      
-      // Always add BluePay Channel first
-      const channelElement = document.createElement('div');
-      channelElement.className = 'friend-item';
-      channelElement.setAttribute('data-email', 'bluepay_channel');
-      channelElement.setAttribute('data-type', 'channel');
-      channelElement.innerHTML = `
-        <div class="friend-avatar">
-          <i class="fas fa-broadcast-tower"></i>
-        </div>
-        <div class="friend-info">
-          <div class="friend-name">BluePay Channel</div>
-          <div class="friend-preview">
-            <span>Official announcements and updates</span>
-          </div>
-          <span class="friend-tag channel-tag">Channel</span>
-        </div>
-      `;
-      friendsContainer.appendChild(channelElement);
-      
-      // Add all registered users (excluding current admin)
-      const otherUsers = allFirebaseUsers.filter(user => user.email !== currentUser.email);
-      
-      otherUsers.forEach(user => {
-        const messages = getChatMessages(user.email);
-        const lastRead = getLastReadTime(user.email);
-        const preview = getMessagePreview(messages);
-        const unreadCount = getUnreadCount(messages, lastRead);
-        
-        const contactElement = document.createElement('div');
-        contactElement.className = 'friend-item';
-        contactElement.setAttribute('data-email', user.email);
-        contactElement.setAttribute('data-type', 'user');
-        contactElement.innerHTML = `
-          <div class="friend-avatar">
-            <i class="fas fa-user"></i>
-          </div>
-          <div class="friend-info">
-            <div class="friend-name">${user.name}</div>
-            <div class="friend-preview">
-              <span>${preview || 'No messages yet'}</span>
-              ${unreadCount > 0 ? `<span class="message-badge">${unreadCount > 99 ? '99+' : unreadCount}</span>` : ''}
-            </div>
-            <span class="friend-tag user-tag">User</span>
-          </div>
-        `;
-        friendsContainer.appendChild(contactElement);
-        
-        contactElement.addEventListener('click', () => {
-          const contact = {
-            email: user.email,
-            name: user.name,
-            isVendor: user.email === 'bluepay863@gmail.com'
-          };
-          localStorage.setItem('selected_contact', JSON.stringify(contact));
-          window.location.href = 'messenger.html';
-        });
-      });
-      
-      // Add click event for channel
-      channelElement.addEventListener('click', () => {
-        window.location.href = 'channel.html';
-      });
-    }
-
-    // Render friends list for regular users (only channel + vendor + saved contacts)
-    function renderUserFriendsList() {
-      friendsContainer.innerHTML = '';
-      
-      // Add BluePay Channel as first contact
-      const channelElement = document.createElement('div');
-      channelElement.className = 'friend-item';
-      channelElement.setAttribute('data-email', 'bluepay_channel');
-      channelElement.setAttribute('data-type', 'channel');
-      channelElement.innerHTML = `
-        <div class="friend-avatar">
-          <i class="fas fa-broadcast-tower"></i>
-        </div>
-        <div class="friend-info">
-          <div class="friend-name">BluePay Channel</div>
-          <div class="friend-preview">
-            <span>Official announcements and updates</span>
-          </div>
-          <span class="friend-tag channel-tag">Channel</span>
-        </div>
-      `;
-      friendsContainer.appendChild(channelElement);
-      
-      // Add BluePay Vendor (admin) as second contact
-      const adminElement = document.createElement('div');
-      adminElement.className = 'friend-item';
-      adminElement.setAttribute('data-email', 'bluepay863@gmail.com');
-      adminElement.setAttribute('data-type', 'vendor');
-      adminElement.innerHTML = `
-        <div class="friend-avatar">
-          <i class="fas fa-user-shield"></i>
-        </div>
-        <div class="friend-info">
-          <div class="friend-name">BluePay Vendor</div>
-          <div class="friend-preview">
-            <span>Admin support and assistance</span>
-          </div>
-          <span class="friend-tag vendor-tag">Vendor</span>
-        </div>
-      `;
-      friendsContainer.appendChild(adminElement);
-      
-      // Add user's saved contacts (excluding admin and channel)
-      const contacts = JSON.parse(localStorage.getItem('user_contacts') || '[]');
-      const userContacts = contacts.filter(contact => 
-        contact.email !== 'bluepay_channel' && 
-        contact.email !== 'bluepay863@gmail.com' &&
-        contact.email !== currentUser.email
-      );
-      
-      userContacts.forEach(contact => {
-        const messages = getChatMessages(contact.email);
-        const lastRead = getLastReadTime(contact.email);
-        const preview = getMessagePreview(messages);
-        const unreadCount = getUnreadCount(messages, lastRead);
-        
-        const contactElement = document.createElement('div');
-        contactElement.className = 'friend-item';
-        contactElement.setAttribute('data-email', contact.email);
-        contactElement.setAttribute('data-type', 'user');
-        contactElement.innerHTML = `
-          <div class="friend-avatar">
-            <i class="fas fa-user"></i>
-          </div>
-          <div class="friend-info">
-            <div class="friend-name">${contact.name}</div>
-            <div class="friend-preview">
-              <span>${preview || 'No messages yet'}</span>
-              ${unreadCount > 0 ? `<span class="message-badge">${unreadCount > 99 ? '99+' : unreadCount}</span>` : ''}
-            </div>
-            <span class="friend-tag user-tag">User</span>
-          </div>
-        `;
-        friendsContainer.appendChild(contactElement);
-        
-                contactElement.addEventListener('click', () => {
-          localStorage.setItem('selected_contact', JSON.stringify(contact));
-          window.location.href = 'messenger.html';
-        });
-      });
-      
-      // Add click events for channel and admin
-      channelElement.addEventListener('click', () => {
-        window.location.href = 'channel.html';
-      });
-      
-      adminElement.addEventListener('click', () => {
-        const adminContact = {
-          email: 'bluepay863@gmail.com',
-          name: 'BluePay Vendor',
-          isVendor: true
-        };
-        localStorage.setItem('selected_contact', JSON.stringify(adminContact));
-        window.location.href = 'messenger.html';
-      });
-    }
-
-    // Search for user in Firebase
-    function searchUser() {
-      const email = searchInput.value.trim();
-      
-      if (!email) {
-        searchResult.innerHTML = '';
-        return;
-      }
-      
-      if (!email.endsWith('@gmail.com')) {
-        searchResult.innerHTML = `
-          <div class="search-result">
-            <h3>${email}</h3>
-            <p class="status-not-registered">This person is not registered yet with BluePay</p>
-            <button class="add-user-btn" disabled>Add User</button>
-          </div>
-        `;
-        return;
-      }
-      
-      const isRegistered = isUserRegistered(email);
-      const userDetails = isRegistered ? getUserDetails(email) : null;
-      
-      searchResult.innerHTML = `
-        <div class="search-result">
-          <h3>${isRegistered ? userDetails.name : email}</h3>
-          <p class="${isRegistered ? 'status-registered' : 'status-not-registered'}">
-            ${isRegistered ? 'This person is a BluePay user' : 'This person is not registered yet with BluePay'}
-          </p>
-          <button class="add-user-btn" ${isRegistered ? '' : 'disabled'}>
-            ${isRegistered ? 'Add User' : 'Not Available'}
-          </button>
-        </div>
-      `;
-      
-      // Add event listener to add button
-      const addButton = searchResult.querySelector('.add-user-btn');
-      if (addButton && isRegistered) {
-        addButton.addEventListener('click', () => {
-          if (addUserToContacts(email)) {
-            renderFriendsList();
-            searchContainer.classList.remove('active');
-            searchInput.value = '';
-            searchResult.innerHTML = '';
+          // Admin sees ALL verified users
+          if (currentUser.email === ADMIN_EMAIL) {
+            friends.push(u);
+          } 
+          // Regular users see ONLY the admin (as vendor)
+          else if (u.email === ADMIN_EMAIL) {
+            friends.push(u);
           }
         });
+
+        render(friends, followers, currentUser.email === ADMIN_EMAIL);
+      } catch (e) {
+        console.error("Error loading friends:", e);
+        // Silent fail - keep UI clean
       }
     }
 
-    // Render friends list based on user role
-    function renderFriendsList() {
-      if (isAdmin) {
-        renderAdminFriendsList();
-      } else {
-        renderUserFriendsList();
-      }
-    }
-
-    // Initialize the app
-    async function init() {
-      if (!loadCurrentUser()) {
+    // 🔐 Auth State
+    auth.onAuthStateChanged(async (user) => {
+      if (!user || !user.emailVerified) {
+        window.location.href = 'login.html';
         return;
       }
-      
-      // Fetch all users from Firebase
-      await fetchAllUsersFromFirebase();
-      
-      // Render friends list
-      renderFriendsList();
-      
-      // Event listeners
-      addContactBtn.addEventListener('click', () => {
-        searchContainer.classList.toggle('active');
-        if (searchContainer.classList.contains('active')) {
-          searchInput.focus();
-        }
-      });
-      
-      searchInput.addEventListener('input', searchUser);
-      
-      // Close search when clicking outside
-      document.addEventListener('click', (e) => {
-        if (!searchContainer.contains(e.target) && e.target !== addContactBtn) {
-          searchContainer.classList.remove('active');
-          searchInput.value = '';
-          searchResult.innerHTML = '';
-        }
-      });
-    }
 
-    // Start the app
-    document.addEventListener('DOMContentLoaded', init);
+      currentUser = { uid: user.uid, email: user.email };
+      showLoading();
+      await loadFriends();
+      hideLoading();
+
+      // 🔔 Real-time updates for admin
+      if (currentUser.email === ADMIN_EMAIL) {
+        const unsub = db.collection('users')
+          .where('emailVerified', '==', true)
+          .onSnapshot(snap => {
+            let hasNew = false;
+            snap.docChanges().forEach(change => {
+              if (change.type === 'added' && change.doc.id !== currentUser.uid) {
+                hasNew = true;
+              }
+            });
+            if (hasNew) loadFriends();
+          });
+        window.addEventListener('beforeunload', unsub);
+      }
+    });
   </script>
 </body>
 </html>

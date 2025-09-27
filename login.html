@@ -15,6 +15,7 @@
       --text-gray: #333333;
       --border-gray: #dce0e6;
       --success-green: #28a745;
+      --warning-orange: #fd7e14;
     }
 
     * {
@@ -33,10 +34,6 @@
       align-items: center;
       padding: 20px;
       touch-action: manipulation;
-      -webkit-text-size-adjust: 100%;
-      -moz-text-size-adjust: 100%;
-      -ms-text-size-adjust: 100%;
-      text-size-adjust: 100%;
       overflow-x: hidden;
     }
 
@@ -105,11 +102,22 @@
       margin-top: 12px;
       font-weight: 700;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
     }
 
     .google-btn:hover {
       background-color: #f8f9ff;
       border-color: #c0c0c0;
+    }
+
+    .google-icon {
+      width: 20px;
+      height: 20px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath fill='%234285F4' d='M44.5 20H24v8.5h11.8C34.7 33.9 30.1 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-22 0-1.3-.2-2.7-.5-4z'/%3E%3C/svg%3E") no-repeat center;
+      background-size: contain;
     }
 
     .signup-link {
@@ -121,17 +129,6 @@
     }
 
     .signup-link:hover {
-      text-decoration: underline;
-    }
-
-    .forgot-password {
-      margin-top: 15px;
-      color: var(--blue-primary);
-      text-decoration: none;
-      font-size: 14px;
-    }
-
-    .forgot-password:hover {
       text-decoration: underline;
     }
 
@@ -148,7 +145,6 @@
       align-items: center;
       z-index: 1000;
       backdrop-filter: blur(5px);
-      -webkit-backdrop-filter: blur(5px);
     }
 
     .alert {
@@ -260,30 +256,6 @@
       font-size: 18px;
       font-weight: 600;
     }
-
-    /* Prevent zooming */
-    body {
-      touch-action: manipulation;
-    }
-
-    html {
-      -webkit-touch-callout: none;
-      -webkit-user-select: none;
-      -khtml-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
-      touch-action: manipulation;
-    }
-
-    input, textarea, select {
-      font-size: 16px !important;
-      touch-action: manipulation;
-    }
-
-    body {
-      overscroll-behavior: none;
-    }
   </style>
 </head>
 <body>
@@ -296,15 +268,20 @@
 
     <button id="loginBtn">Log In</button>
 
-    <button class="google-btn" id="googleBtn">Continue with Google</button>
+    <button class="google-btn" id="googleBtn">
+      <span class="google-icon"></span>
+      Continue with Google
+    </button>
 
-    <p><a href="#" class="forgot-password">Forgot Password?</a></p>
-    <p><a href="signup.html" class="signup-link">Don't have an account? Sign up</a></p>
+    <p>
+      <a href="signup.html" class="signup-link">Don't have an account? Sign up</a>
+    </p>
   </div>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/12.2.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/12.2.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore-compat.js"></script>
 
   <script>
     // Firebase Configuration
@@ -318,128 +295,119 @@
       measurementId: "G-2SS5J1Y13C"
     };
 
-    // Initialize Firebase
     const app = firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
+    const db = firebase.firestore();
 
-    // Check if user is already logged in
-    auth.onAuthStateChanged(function(user) {
-      if (user && localStorage.getItem('bluepay_registered')) {
-        // Redirect to dashboard if already logged in
-        showLoadingScreen("Redirecting to your dashboard...");
-        setTimeout(() => {
-          window.location.href = "dashboard.html";
-        }, 1500);
-      }
-    });
+    // ✅ NO AUTO-REDIRECT ON AUTH STATE CHANGE
+    // We only show login form
 
-    // Login Button Event
-    document.getElementById('loginBtn').addEventListener('click', function() {
+    // Email/Password Login
+    document.getElementById('loginBtn').addEventListener('click', async function() {
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
 
-      // Validation
       if (!email || !password) {
-        showBeautifulAlert(
-          "Missing Information",
-          "Please enter both your email and password.",
-          "OK"
-        );
+        showBeautifulAlert("Missing Information", "Please enter your email and password.", "OK");
         return;
       }
 
-      // Show loading screen
       showLoadingScreen("Logging you in...");
 
-      // Attempt to log in
-      auth.signInWithEmailAndPassword(email, password)
-        .then(function(userCredential) {
-          // Check if this is a registered BluePay user
-          if (!localStorage.getItem('bluepay_registered')) {
-            // This user exists in Firebase but not in our BluePay system
-            // Let's create a BluePay account for them with the ₦50,000 bonus
-            const userData = {
-              name: userCredential.user.displayName || userCredential.user.email.split('@')[0],
-              email: userCredential.user.email,
-              uid: userCredential.user.uid,
-              balance: 50000.00, // ₦50,000 welcome bonus
-              signupDate: new Date().toISOString()
-            };
+      try {
+        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        const user = userCredential.user;
 
-            localStorage.setItem('bluepay_registered', 'true');
-            localStorage.setItem('bluepay_user', JSON.stringify(userData));
-            localStorage.setItem('bluepay_balance', '50000.00');
-            localStorage.setItem('bluepay_uid', userCredential.user.uid);
-
-            showBeautifulAlert(
-              "Welcome to BluePay!",
-              `You've received a ₦50,000 welcome bonus!<br>Redirecting to your dashboard...`,
-              "OK",
-              () => {
-                setTimeout(() => {
-                  window.location.href = "dashboard.html";
-                }, 1000);
-              }
-            );
-          } else {
-            // Regular login - redirect to dashboard
-            setTimeout(() => {
-              window.location.href = "dashboard.html";
-            }, 1500);
-          }
-        })
-        .catch(function(error) {
+        // Check email verification
+        if (!user.emailVerified) {
           hideLoadingScreen();
-          
-          let title = "Login Failed";
-          let msg = "Please check your credentials and try again.";
-          
-          if (error.code === "auth/user-not-found") {
-            title = "Account Not Found";
-            msg = "No account found with this email address.<br>Please sign up for a new account.";
-          } else if (error.code === "auth/wrong-password") {
-            msg = "Incorrect password. Please try again.";
-          } else if (error.code === "auth/invalid-email") {
-            msg = "Please enter a valid email address.";
-          } else if (error.code === "auth/user-disabled") {
-            msg = "This account has been disabled. Please contact support.";
-          } else if (error.code === "auth/network-request-failed") {
-            msg = "Network error. Please check your connection and try again.";
+          showBeautifulAlert(
+            "Email Not Verified",
+            `Please verify your email.<br>We sent a link to <strong>${email}</strong>.`,
+            "OK"
+          );
+          return;
+        }
+
+        // ✅ Save to localStorage (optional)
+        localStorage.setItem('bluepay_user_uid', user.uid);
+        
+        // ✅ Update Firestore verification status
+        await db.collection('users').doc(user.uid).update({ emailVerified: true });
+
+        // ✅ SHOW SUCCESS — NO REDIRECT
+        hideLoadingScreen();
+        showBeautifulAlert(
+          "Login Successful!",
+          `Welcome back!<br>You're now logged in as <strong>${user.email}</strong>.`,
+          "Go to Dashboard",
+          () => {
+            window.location.href = "dashboard.html";
           }
+        );
 
-          showBeautifulAlert(title, msg, "Try Again", () => {
-            document.getElementById('loginBtn').disabled = false;
-            document.getElementById('loginBtn').textContent = "Log In";
+      } catch (error) {
+        hideLoadingScreen();
+        let msg = "Incorrect email or password.";
+        if (error.code === "auth/invalid-email") msg = "Please enter a valid email.";
+        if (error.code === "auth/network-request-failed") msg = "Network error. Please try again.";
+        
+        showBeautifulAlert("Login Failed", msg, "OK");
+      }
+    });
+
+    // Google Sign-In
+    document.getElementById('googleBtn').addEventListener('click', async function() {
+      showLoadingScreen("Signing in with Google...");
+      
+      const provider = new firebase.auth.GoogleAuthProvider();
+      provider.addScope('profile');
+      provider.addScope('email');
+      
+      try {
+        const result = await auth.signInWithPopup(provider);
+        const user = result.user;
+        
+        // Check if user exists in Firestore
+        const userDoc = await db.collection('users').doc(user.uid).get();
+        if (!userDoc.exists) {
+          // New Google user — create profile
+          await db.collection('users').doc(user.uid).set({
+            name: user.displayName || user.email.split('@')[0],
+            email: user.email,
+            uid: user.uid,
+            emailVerified: true,
+            balance: 50000.00,
+            signupDate: firebase.firestore.FieldValue.serverTimestamp()
           });
-        });
+        }
+        
+        // ✅ Save to localStorage
+        localStorage.setItem('bluepay_user_uid', user.uid);
+        
+        // ✅ SHOW SUCCESS — NO REDIRECT
+        hideLoadingScreen();
+        showBeautifulAlert(
+          "Google Login Successful!",
+          `Welcome, <strong>${user.displayName || user.email}</strong>!`,
+          "Go to Dashboard",
+          () => {
+            window.location.href = "dashboard.html";
+          }
+        );
+        
+      } catch (error) {
+        hideLoadingScreen();
+        if (error.code !== 'auth/popup-closed-by-user') {
+          showBeautifulAlert("Google Login Failed", "Please try again.", "OK");
+        }
+      }
     });
 
-    // Google Sign In Button
-    document.getElementById('googleBtn').addEventListener('click', function() {
-      showBeautifulAlert(
-        "Feature Coming Soon",
-        "Google sign-in is not available yet.<br>Please log in with your email and password.",
-        "OK"
-      );
-    });
-
-    // Forgot Password
-    document.querySelector('.forgot-password').addEventListener('click', function(e) {
-      e.preventDefault();
-      showBeautifulAlert(
-        "Feature Coming Soon",
-        "Password reset functionality is not available yet.<br>Please contact support for assistance.",
-        "OK"
-      );
-    });
-
-    // Alert Function
-    function showBeautifulAlert(title, message, buttonText, callback) {
-      // Create overlay
+    // Alert & Loading Functions
+    function showBeautifulAlert(title, message, buttonText, callback = null) {
       const overlay = document.createElement('div');
       overlay.className = 'alert-overlay';
-      
-      // Create alert
       const alertDiv = document.createElement('div');
       alertDiv.className = 'alert';
       alertDiv.innerHTML = `
@@ -447,56 +415,42 @@
         <p>${message}</p>
         <button class="alert-button">${buttonText}</button>
       `;
-      
-      // Add to DOM
       overlay.appendChild(alertDiv);
       document.body.appendChild(overlay);
 
-      // Add click event
-      const button = alertDiv.querySelector('.alert-button');
-      button.addEventListener('click', function() {
+      const btn = alertDiv.querySelector('.alert-button');
+      btn.onclick = () => {
         document.body.removeChild(overlay);
         if (callback) callback();
-      });
-      
-      // Close on overlay click (outside the alert)
-      overlay.addEventListener('click', function(e) {
+      };
+      overlay.onclick = (e) => {
         if (e.target === overlay) {
           document.body.removeChild(overlay);
           if (callback) callback();
         }
-      });
+      };
     }
 
-    // Loading Screen Functions
     function showLoadingScreen(message = "Please wait...") {
-      // Disable button
       document.getElementById('loginBtn').disabled = true;
-      document.getElementById('loginBtn').textContent = "Processing...";
-
-      // Create loading screen
-      const loadingScreen = document.createElement('div');
-      loadingScreen.className = 'loading-screen';
-      loadingScreen.id = 'loadingScreen';
-      loadingScreen.innerHTML = `
+      document.getElementById('googleBtn').disabled = true;
+      
+      const screen = document.createElement('div');
+      screen.className = 'loading-screen';
+      screen.id = 'loadingScreen';
+      screen.innerHTML = `
         <div class="loader"></div>
         <h3>${message}</h3>
       `;
-      
-      document.body.appendChild(loadingScreen);
+      document.body.appendChild(screen);
     }
 
     function hideLoadingScreen() {
-      const loadingScreen = document.getElementById('loadingScreen');
-      if (loadingScreen) {
-        document.body.removeChild(loadingScreen);
-      }
-      
-      // Re-enable button
+      const screen = document.getElementById('loadingScreen');
+      if (screen) document.body.removeChild(screen);
       document.getElementById('loginBtn').disabled = false;
-      document.getElementById('loginBtn').textContent = "Log In";
+      document.getElementById('googleBtn').disabled = false;
     }
   </script>
-
 </body>
 </html>
