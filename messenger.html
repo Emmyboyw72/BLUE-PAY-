@@ -3,105 +3,76 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>BluePay Messenger</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Messenger - BluePay</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
   <style>
     :root {
       --blue-primary: #1a73e8;
       --blue-dark: #0d47a1;
+      --blue-light: #e8f0fe;
       --white: #ffffff;
-      --text-gray: #333333;
-      --border-gray: #dce0e6;
-      --light-gray: #f5f5f5;
-      --success-green: #34a853;
-      --error-red: #ea4335;
-      --message-bg: #e8f0fe;
-      --vendor-bg: #e6f4ea;
+      --text-gray: #2d2d2d;
+      --border-gray: #e0e6ed;
+      --bg-light: #fafbff;
+      --received-bg: #f1f3f4;
+      --sent-bg: var(--blue-primary);
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
     body {
-      background-color: #f8f9fa;
+      background-color: var(--bg-light);
       color: var(--text-gray);
       min-height: 100vh;
-      position: relative;
+      padding: 0;
+      margin: 0;
       touch-action: manipulation;
-      -webkit-text-size-adjust: none;
-      -ms-text-size-adjust: none;
+      overflow-x: hidden;
       display: flex;
       flex-direction: column;
       height: 100vh;
     }
 
+    /* Header */
     .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem 1.5rem;
-      background-color: var(--blue-primary);
+      background: linear-gradient(120deg, var(--blue-primary), var(--blue-dark));
       color: white;
+      padding: 16px 20px;
       position: sticky;
       top: 0;
       z-index: 100;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    .header h1 {
-      font-size: 1.3rem;
-      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
     }
 
     .back-btn {
       background: none;
       border: none;
       color: white;
-      font-size: 1.5rem;
-      cursor: pointer;
-      padding: 0;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .chat-container {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      padding: 0 1rem;
-      max-width: 800px;
-      margin: 0 auto;
-      width: 100%;
-    }
-
-    .chat-header {
-      display: flex;
-      align-items: center;
-      padding: 1rem 0;
-      border-bottom: 1px solid var(--border-gray);
-      margin-bottom: 1rem;
-    }
-
-    .contact-avatar {
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      background-color: var(--blue-primary);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 1.4rem;
+      font-size: 24px;
       margin-right: 16px;
+      cursor: pointer;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+    }
+
+    .back-btn:hover {
+      background: rgba(255,255,255,0.2);
     }
 
     .contact-info {
@@ -109,89 +80,114 @@
     }
 
     .contact-name {
+      font-weight: 700;
       font-size: 1.2rem;
-      font-weight: 600;
       margin-bottom: 4px;
     }
 
     .contact-status {
-      font-size: 0.9rem;
-      color: var(--success-green);
-      display: flex;
-      align-items: center;
+      font-size: 0.85rem;
+      opacity: 0.9;
     }
 
-    .contact-status i {
-      margin-right: 6px;
-    }
-
-    .messages-container {
+    /* Chat Container */
+    .chat-container {
       flex: 1;
       overflow-y: auto;
-      padding-bottom: 1rem;
+      padding: 20px 16px;
       display: flex;
       flex-direction: column;
+      gap: 16px;
     }
 
+    /* Message Bubbles */
     .message {
-      max-width: 70%;
+      max-width: 75%;
       padding: 12px 16px;
-      margin-bottom: 12px;
       border-radius: 18px;
       position: relative;
-      word-wrap: break-word;
-      line-height: 1.4;
+      animation: fadeIn 0.2s ease-out;
     }
 
-    .message.outgoing {
-      background-color: var(--blue-primary);
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .received {
+      background: var(--received-bg);
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+    }
+
+    .sent {
+      background: var(--sent-bg);
       color: white;
       align-self: flex-end;
       border-bottom-right-radius: 4px;
     }
 
-    .message.incoming {
-      background-color: var(--message-bg);
-      color: var(--text-gray);
-      align-self: flex-start;
-      border-bottom-left-radius: 4px;
+    .message-text {
+      word-wrap: break-word;
+      line-height: 1.4;
     }
 
     .message-time {
       font-size: 0.75rem;
+      margin-top: 6px;
       opacity: 0.8;
-      margin-top: 4px;
-      text-align: right;
     }
 
-    .input-container {
-      display: flex;
-      padding: 1rem 0;
-      border-top: 1px solid var(--border-gray);
-      background-color: white;
-      position: sticky;
-      bottom: 0;
+    .sent .message-time {
+      color: rgba(255,255,255,0.8);
+    }
+
+    /* Reply Indicator */
+    .reply-indicator {
+      display: none;
+      position: absolute;
+      top: -28px;
+      padding: 4px 12px;
+      background: var(--blue-primary);
+      color: white;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
       z-index: 10;
+      animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(-20px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* Input Area */
+    .input-area {
+      background: white;
+      padding: 12px 16px;
+      display: flex;
+      gap: 12px;
+      border-top: 1px solid var(--border-gray);
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
     }
 
     .message-input {
       flex: 1;
-      padding: 12px 16px;
+      padding: 14px 16px;
       border: 1px solid var(--border-gray);
       border-radius: 24px;
       font-size: 1rem;
       outline: none;
-      resize: none;
-      max-height: 120px;
+      transition: border-color 0.2s;
     }
 
     .message-input:focus {
       border-color: var(--blue-primary);
-      box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
     }
 
     .send-btn {
-      background-color: var(--blue-primary);
+      background: linear-gradient(135deg, var(--blue-primary), var(--blue-dark));
       color: white;
       border: none;
       width: 48px;
@@ -200,337 +196,476 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-left: 12px;
       cursor: pointer;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 6px rgba(26, 115, 232, 0.3);
     }
 
-    .send-btn:disabled {
-      background-color: #b0b0b0;
-      cursor: not-allowed;
+    .send-btn:hover {
+      transform: scale(1.05);
     }
 
-    /* Beautiful Alert */
-    .beautiful-alert {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%) translateY(-100%);
-      background: linear-gradient(135deg, var(--blue-primary), var(--blue-dark));
-      color: white;
-      padding: 16px 24px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      z-index: 2000;
-      font-weight: 500;
-      transition: transform 0.3s ease-out;
-      max-width: 90%;
-      text-align: center;
+    .send-icon {
+      width: 24px;
+      height: 24px;
+      background: url("image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ffffff' d='M2.01 21L23 12 2.01 3 2 10l15 2-15 2z'/%3E%3C/svg%3E") no-repeat center;
+      background-size: contain;
     }
 
-    .beautiful-alert.show {
-      transform: translateX(-50%) translateY(0);
-    }
-
-    .beautiful-alert.error {
-      background: linear-gradient(135deg, var(--error-red), #c53929);
-    }
-
-    .beautiful-alert.success {
-      background: linear-gradient(135deg, var(--success-green), #2a8c44);
-    }
-
-    /* Empty state */
+    /* Empty State */
     .empty-chat {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
       text-align: center;
-      padding: 2rem;
-      color: #666;
-    }
-
-    .empty-chat i {
-      font-size: 4rem;
-      color: var(--blue-primary);
-      margin-bottom: 20px;
-      opacity: 0.7;
-    }
-
-    .empty-chat h3 {
-      font-size: 1.4rem;
-      margin-bottom: 15px;
-      color: var(--blue-primary);
+      padding: 40px 20px;
+      color: #777;
     }
 
     .empty-chat p {
-      line-height: 1.6;
-      max-width: 500px;
+      margin-top: 16px;
+      font-size: 1.1rem;
     }
 
-    @media (max-width: 600px) {
-      .header {
-        padding: 0.8rem 1rem;
-      }
-      .chat-header {
-        padding: 0.8rem 0;
-      }
-      .contact-avatar {
-        width: 48px;
-        height: 48px;
-        font-size: 1.2rem;
-      }
-      .contact-name {
-        font-size: 1.1rem;
-      }
-      .message {
-        max-width: 80%;
-      }
+    /* Loading */
+    .loading {
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid rgba(26, 115, 232, 0.2);
+      border-top-color: var(--blue-primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Swipe hint */
+    .swipe-hint {
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    .swipe-hint.show {
+      opacity: 1;
+    }
+
+    /* Beautiful Alert Styles */
+    .alert-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.55);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      backdrop-filter: blur(6px);
+    }
+
+    .alert {
+      background: white;
+      border-radius: 24px;
+      padding: 40px;
+      width: 90%;
+      max-width: 500px;
+      text-align: center;
+      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(26, 115, 232, 0.15);
+    }
+
+    .alert h2 {
+      color: var(--blue-primary);
+      margin-bottom: 20px;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 1.7rem;
+    }
+
+    .alert p {
+      margin-bottom: 28px;
+      line-height: 1.6;
+      color: #444;
+      font-size: 1.05rem;
+    }
+
+    .alert-button {
+      background: linear-gradient(135deg, var(--blue-primary), var(--blue-dark));
+      color: white;
+      border: none;
+      padding: 14px 32px;
+      border-radius: 14px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .alert-button:hover {
+      transform: scale(1.03);
+      box-shadow: 0 5px 15px rgba(26, 115, 232, 0.4);
     }
   </style>
 </head>
 <body>
   <div class="header">
-    <button class="back-btn" id="backBtn">
-      <i class="fas fa-arrow-left"></i>
+    <button class="back-btn" id="backBtn">←</button>
+    <div class="contact-info">
+      <div class="contact-name" id="contactName">Loading...</div>
+      <div class="contact-status" id="contactStatus">Online</div>
+    </div>
+  </div>
+
+  <div class="chat-container" id="chatContainer">
+    <!-- Messages will be loaded here -->
+  </div>
+
+  <div class="input-area">
+    <input type="text" class="message-input" id="messageInput" placeholder="Type a message..." autocomplete="off">
+    <button class="send-btn" id="sendBtn">
+      <div class="send-icon"></div>
     </button>
-    <h1 id="chatTitle">Chat</h1>
   </div>
 
-  <div class="chat-container">
-    <div class="chat-header">
-      <div class="contact-avatar" id="contactAvatar">
-        <i class="fas fa-user" id="contactIcon"></i>
-      </div>
-      <div class="contact-info">
-        <div class="contact-name" id="contactName">Loading...</div>
-        <div class="contact-status">
-          <i class="fas fa-circle"></i>
-          <span id="contactStatus">Online</span>
-        </div>
-      </div>
-    </div>
+  <div class="swipe-hint" id="swipeHint">Swipe right to reply</div>
 
-    <div class="messages-container" id="messagesContainer">
-      <!-- Messages loaded here -->
-    </div>
-
-    <div class="input-container">
-      <textarea 
-        class="message-input" 
-        id="messageInput" 
-        placeholder="Type a message..."
-        rows="1"
-      ></textarea>
-      <button class="send-btn" id="sendBtn" disabled>
-        <i class="fas fa-paper-plane"></i>
-      </button>
-    </div>
-  </div>
-
-  <div class="beautiful-alert" id="beautifulAlert">Alert message</div>
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/12.2.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.2.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore-compat.js"></script>
 
   <script>
-    const backBtn = document.getElementById('backBtn');
-    const chatTitle = document.getElementById('chatTitle');
-    const contactName = document.getElementById('contactName');
-    const contactStatus = document.getElementById('contactStatus');
-    const messagesContainer = document.getElementById('messagesContainer');
+    // Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyCusJ_rFuOWwy1QFZedtyJr7igCeiIg3a0",
+      authDomain: "my-sign-up-and-login.firebaseapp.com",
+      projectId: "my-sign-up-and-login",
+      storageBucket: "my-sign-up-and-login.firebasestorage.app",
+      messagingSenderId: "1009128333653",
+      appId: "1:1009128333653:web:15c1609ca3fbd4720c0fdc"
+    };
+
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // Get current user and recipient
+    let currentUser = null;
+    let recipientId = null;
+    let recipientName = "User";
+    let chatId = null;
+    let messages = [];
+    let startX = 0;
+    let currentX = 0;
+    let isDragging = false;
+    let activeMessage = null;
+
+    // DOM Elements
+    const chatContainer = document.getElementById('chatContainer');
     const messageInput = document.getElementById('messageInput');
     const sendBtn = document.getElementById('sendBtn');
-    const beautifulAlert = document.getElementById('beautifulAlert');
+    const contactName = document.getElementById('contactName');
+    const backBtn = document.getElementById('backBtn');
+    const swipeHint = document.getElementById('swipeHint');
 
-    let currentUser = null;
-    let currentContact = null;
-    let chatId = null;
-    let isAdmin = false;
-
-    function showBeautifulAlert(message, type = 'info') {
-      beautifulAlert.textContent = message;
-      beautifulAlert.className = 'beautiful-alert ' + type;
-      beautifulAlert.classList.add('show');
-      setTimeout(() => beautifulAlert.classList.remove('show'), 3000);
-    }
-
-    function formatTime(timestamp) {
-      const date = new Date(timestamp);
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    }
-
-    function getChatId(user1, user2) {
-      return [user1, user2].sort().join('_');
-    }
-
-    function loadCurrentUser() {
-      const userStr = localStorage.getItem('bluepay_user');
-      if (!userStr) return false;
-      try {
-        currentUser = JSON.parse(userStr);
-        isAdmin = currentUser.email === 'bluepay863@gmail.com';
-        return true;
-      } catch (e) {
-        showBeautifulAlert("Error loading user data", 'error');
-        return false;
+    // Initialize
+    function init() {
+      // Get recipient from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      recipientId = urlParams.get('to');
+      
+      if (!recipientId) {
+        showBeautifulAlert(
+          "Chat Error",
+          "No recipient specified! Please return to your friends list.",
+          "Go to Friends",
+          () => {
+            window.location.href = "friends.html";
+          }
+        );
+        return;
       }
-    }
 
-    function loadContact() {
-      const contactStr = localStorage.getItem('selected_contact');
-      if (!contactStr) return false;
-      try {
-        currentContact = JSON.parse(contactStr);
-        // Prevent channel from opening in messenger
-        if (currentContact.email === 'bluepay_channel') {
-          window.location.href = 'channel.html';
-          return false;
+      // Check auth state
+      auth.onAuthStateChanged(async (user) => {
+        if (!user || !user.emailVerified) {
+          showBeautifulAlert(
+            "Authentication Required",
+            "Please log in to access your messages.",
+            "Go to Login",
+            () => {
+              window.location.href = "login.html";
+            }
+          );
+          return;
         }
-        return true;
-      } catch (e) {
-        showBeautifulAlert("Error loading contact", 'error');
-        return false;
-      }
-    }
 
-    function getDisplayName(email, name) {
-      // If current user is NOT admin, and the contact is the admin → show "BluePay Vendor"
-      if (!isAdmin && email === 'bluepay863@gmail.com') {
-        return 'BluePay Vendor';
-      }
-      // Otherwise, show real name
-      return name || email.split('@')[0];
-    }
-
-    function initChat() {
-      if (!loadCurrentUser()) {
-        window.location.href = 'login.html';
-        return;
-      }
-      if (!loadContact()) {
-        window.location.href = 'friends.html';
-        return;
-      }
-
-      // Set chat ID
-      chatId = getChatId(currentUser.email, currentContact.email);
-
-      // Determine display name based on role
-      const displayName = getDisplayName(currentContact.email, currentContact.name);
-      contactName.textContent = displayName;
-      chatTitle.textContent = displayName;
-
-      // Set status (simplified as "Online" for demo)
-      contactStatus.textContent = 'Online';
-
-      loadMessages();
-      setupEventListeners();
-      markMessagesAsRead();
-    }
-
-    function loadMessages() {
-      const messages = JSON.parse(localStorage.getItem(`chat_${chatId}`) || '[]');
-      renderMessages(messages);
-    }
-
-    function renderMessages(messages) {
-      messagesContainer.innerHTML = '';
-      
-      if (messages.length === 0) {
-        messagesContainer.innerHTML = `
-          <div class="empty-chat">
-            <i class="fas fa-comments"></i>
-            <h3>No messages yet</h3>
-            <p>Start the conversation!</p>
-          </div>
-        `;
-        return;
-      }
-
-      messages.forEach(msg => {
-        const isOutgoing = msg.sender === currentUser.email;
-        const messageElement = document.createElement('div');
-        messageElement.className = `message ${isOutgoing ? 'outgoing' : 'incoming'}`;
-        messageElement.innerHTML = `
-          ${msg.text}
-          <div class="message-time">${formatTime(msg.timestamp)}</div>
-        `;
-        messagesContainer.appendChild(messageElement);
+        currentUser = user;
+        
+        // Create chat ID (alphabetical order for consistency)
+        const ids = [currentUser.uid, recipientId].sort();
+        chatId = ids.join('_');
+        
+        // Load recipient info
+        await loadRecipientInfo();
+        
+        // Load messages
+        await loadMessages();
+        
+        // Set up real-time listener
+        setupMessageListener();
       });
 
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    }
-
-    function saveMessage(text) {
-      const newMessage = {
-        sender: currentUser.email,
-        text: text,
-        timestamp: new Date().toISOString()
-      };
-
-      const messages = JSON.parse(localStorage.getItem(`chat_${chatId}`) || '[]');
-      messages.push(newMessage);
-      localStorage.setItem(`chat_${chatId}`, JSON.stringify(messages));
-
-      // Update last read for the other user
-      const otherUser = currentContact.email;
-      const otherChatId = getChatId(otherUser, currentUser.email);
-      localStorage.setItem(`last_read_${otherChatId}`, new Date().toISOString());
-
-      return newMessage;
-    }
-
-    function markMessagesAsRead() {
-      localStorage.setItem(`last_read_${chatId}`, new Date().toISOString());
-    }
-
-    function setupEventListeners() {
-      backBtn.addEventListener('click', () => window.location.href = 'friends.html');
-      
-      messageInput.addEventListener('input', () => {
-        sendBtn.disabled = messageInput.value.trim() === '';
-      });
-      
+      // Event listeners
       sendBtn.addEventListener('click', sendMessage);
-      
-      messageInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-          e.preventDefault();
-          sendMessage();
-        }
+      messageInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
       });
       
-      messageInput.addEventListener('input', autoResizeTextarea);
+      backBtn.addEventListener('click', () => {
+        window.location.href = "friends.html";
+      });
+      
+      // Touch events for swipe
+      chatContainer.addEventListener('touchstart', handleTouchStart);
+      chatContainer.addEventListener('touchmove', handleTouchMove);
+      chatContainer.addEventListener('touchend', handleTouchEnd);
     }
 
-    function autoResizeTextarea() {
-      this.style.height = 'auto';
-      this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    // Load recipient info
+    async function loadRecipientInfo() {
+      try {
+        const userDoc = await db.collection('users').doc(recipientId).get();
+        if (userDoc.exists) {
+          const userData = userDoc.data();
+          recipientName = userData.name || "User";
+          contactName.textContent = recipientName;
+        } else {
+          contactName.textContent = "Unknown User";
+        }
+      } catch (error) {
+        console.error("Error loading recipient:", error);
+        showBeautifulAlert(
+          "Error",
+          "Failed to load contact information. Please try again.",
+          "OK"
+        );
+        contactName.textContent = "User";
+      }
     }
 
-    function sendMessage() {
+    // Load messages
+    async function loadMessages() {
+      try {
+        const messagesSnapshot = await db.collection('chats').doc(chatId).collection('messages').orderBy('timestamp', 'asc').get();
+        messages = [];
+        chatContainer.innerHTML = '';
+        
+        if (messagesSnapshot.empty) {
+          chatContainer.innerHTML = `
+            <div class="empty-chat">
+              <h3>No messages yet</h3>
+              <p>Send a message to start the conversation!</p>
+            </div>
+          `;
+          return;
+        }
+        
+        messagesSnapshot.forEach(doc => {
+          messages.push(doc.data());
+        });
+        
+        renderMessages();
+      } catch (error) {
+        console.error("Error loading messages:", error);
+        showBeautifulAlert(
+          "Message Error",
+          "Failed to load messages. Please check your connection and try again.",
+          "Retry",
+          () => {
+            loadMessages();
+          }
+        );
+      }
+    }
+
+    // Set up real-time listener
+    function setupMessageListener() {
+      db.collection('chats').doc(chatId).collection('messages')
+        .orderBy('timestamp', 'asc')
+        .onSnapshot((snapshot) => {
+          snapshot.docChanges().forEach((change) => {
+            if (change.type === 'added') {
+              const newMessage = change.doc.data();
+              messages.push(newMessage);
+              renderMessages();
+              
+              // Scroll to bottom
+              chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+          });
+        });
+    }
+
+    // Render messages
+    function renderMessages() {
+      chatContainer.innerHTML = '';
+      
+      messages.forEach((message, index) => {
+        const messageElement = document.createElement('div');
+        messageElement.className = `message ${message.senderId === currentUser.uid ? 'sent' : 'received'}`;
+        messageElement.dataset.messageId = index;
+        
+        const time = new Date(message.timestamp?.seconds * 1000 || Date.now());
+        const timeString = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        
+        messageElement.innerHTML = `
+          <div class="message-text">${message.text}</div>
+          <div class="message-time">${timeString}</div>
+          <div class="reply-indicator">Reply</div>
+        `;
+        
+        chatContainer.appendChild(messageElement);
+      });
+      
+      // Scroll to bottom
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    // Send message
+    async function sendMessage() {
       const text = messageInput.value.trim();
       if (!text) return;
-
-      const newMessage = saveMessage(text);
       
-      const messageElement = document.createElement('div');
-      messageElement.className = 'message outgoing';
-      messageElement.innerHTML = `
-        ${newMessage.text}
-        <div class="message-time">${formatTime(newMessage.timestamp)}</div>
-      `;
-      messagesContainer.appendChild(messageElement);
-
+      // Clear input
       messageInput.value = '';
-      messageInput.style.height = 'auto';
-      sendBtn.disabled = true;
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
       
-      showBeautifulAlert('Message sent!', 'success');
+      try {
+        const newMessage = {
+          text: text,
+          senderId: currentUser.uid,
+          recipientId: recipientId,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        // Add to Firestore
+        await db.collection('chats').doc(chatId).collection('messages').add(newMessage);
+      } catch (error) {
+        console.error("Error sending message:", error);
+        showBeautifulAlert(
+          "Message Failed",
+          "Unable to send your message. Please check your connection and try again.",
+          "OK"
+        );
+      }
     }
 
-    document.addEventListener('DOMContentLoaded', initChat);
+    // Touch handlers for swipe
+    function handleTouchStart(e) {
+      if (e.touches.length !== 1) return;
+      
+      startX = e.touches[0].clientX;
+      currentX = startX;
+      isDragging = true;
+      activeMessage = e.target.closest('.message');
+      
+      if (activeMessage) {
+        activeMessage.style.transition = 'none';
+      }
+    }
+
+    function handleTouchMove(e) {
+      if (!isDragging || !activeMessage) return;
+      
+      currentX = e.touches[0].clientX;
+      const diff = currentX - startX;
+      
+      // Only allow right swipe (positive diff)
+      if (diff > 0) {
+        activeMessage.style.transform = `translateX(${diff}px)`;
+        
+        // Show hint after 30px swipe
+        if (diff > 30) {
+          swipeHint.classList.add('show');
+        } else {
+          swipeHint.classList.remove('show');
+        }
+      }
+    }
+
+    function handleTouchEnd() {
+      if (!isDragging || !activeMessage) return;
+      
+      const diff = currentX - startX;
+      
+      if (diff > 80) {
+        // Trigger reply
+        const messageText = activeMessage.querySelector('.message-text').textContent;
+        messageInput.value = `> ${messageText}\n`;
+        messageInput.focus();
+      }
+      
+      // Reset
+      activeMessage.style.transform = '';
+      activeMessage.style.transition = '';
+      swipeHint.classList.remove('show');
+      isDragging = false;
+      activeMessage = null;
+    }
+
+    // Beautiful Alert Function
+    function showBeautifulAlert(title, message, buttonText = "OK", callback = null) {
+      // Create overlay
+      const overlay = document.createElement('div');
+      overlay.className = 'alert-overlay';
+      
+      // Create alert
+      const alertDiv = document.createElement('div');
+      alertDiv.className = 'alert';
+      alertDiv.innerHTML = `
+        <h2>${title}</h2>
+        <p>${message}</p>
+        <button class="alert-button">${buttonText}</button>
+      `;
+      
+      // Add to DOM
+      overlay.appendChild(alertDiv);
+      document.body.appendChild(overlay);
+
+      // Add click event
+      const button = alertDiv.querySelector('.alert-button');
+      button.addEventListener('click', function() {
+        document.body.removeChild(overlay);
+        if (callback) callback();
+      });
+      
+      // Close on overlay click (outside the alert)
+      overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) {
+          document.body.removeChild(overlay);
+          if (callback) callback();
+        }
+      });
+    }
+
+    // Initialize when page loads
+    window.addEventListener('DOMContentLoaded', init);
   </script>
 </body>
 </html>
