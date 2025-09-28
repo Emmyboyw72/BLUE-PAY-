@@ -6,10 +6,10 @@
   <meta name="format-detection" content="telephone=no">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>Messenger - BluePay</title>
+  <title>Messenger • BluePay</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
       --blue-primary: #1a73e8;
@@ -19,11 +19,17 @@
       --text-gray: #2d2d2d;
       --border-gray: #e0e6ed;
       --bg-light: #fafbff;
-      --received-bg: #f1f3f4;
-      --sent-bg: var(--blue-primary);
-      --reaction-bg: rgba(0,0,0,0.7);
+      --red-badge: #ea4335;
       --green-seen: #07bc0c;
-      --typing-indicator: #999;
+      --gray-light: #f5f7fa;
+      --gray-medium: #e4e7eb;
+      --gray-dark: #9aa4b2;
+      --message-bg: #f1f3f4;
+      --message-text: #202124;
+      --sent-message-bg: var(--blue-primary);
+      --sent-message-text: white;
+      --deleted-message-bg: #f8f9fa;
+      --deleted-message-text: #6c757d;
     }
 
     * {
@@ -47,14 +53,14 @@
     }
 
     /* Header */
-    .header {
+    .chat-header {
       background: linear-gradient(120deg, var(--blue-primary), var(--blue-dark));
       color: white;
       padding: 16px 20px;
       position: sticky;
       top: 0;
       z-index: 100;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 20px rgba(26, 115, 232, 0.22);
       display: flex;
       align-items: center;
     }
@@ -78,26 +84,35 @@
       background: rgba(255,255,255,0.2);
     }
 
-    .contact-info {
+    .header-info {
       flex: 1;
     }
 
-    .contact-name {
-      font-weight: 700;
+    .recipient-name {
+      font-weight: 600;
       font-size: 1.2rem;
-      margin-bottom: 4px;
+      margin-bottom: 2px;
     }
 
-    .contact-status {
+    .online-status {
+      display: flex;
+      align-items: center;
       font-size: 0.85rem;
-      opacity: 0.9;
     }
 
-    .typing-indicator {
-      font-size: 0.85rem;
-      opacity: 0.9;
-      color: var(--typing-indicator);
-      display: none;
+    .status-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+    }
+
+    .online {
+      background-color: var(--green-seen);
+    }
+
+    .offline {
+      background-color: var(--gray-medium);
     }
 
     /* Chat Container */
@@ -107,18 +122,17 @@
       padding: 20px 16px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
-      position: relative;
+      background-color: var(--gray-light);
     }
 
-    /* Message Bubbles */
+    /* Message Bubble */
     .message {
       max-width: 75%;
-      padding: 12px 16px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
       border-radius: 18px;
       position: relative;
       animation: fadeIn 0.2s ease-out;
-      transition: transform 0.2s;
     }
 
     @keyframes fadeIn {
@@ -127,90 +141,131 @@
     }
 
     .received {
-      background: var(--received-bg);
+      background-color: var(--message-bg);
+      color: var(--message-text);
       align-self: flex-start;
       border-bottom-left-radius: 4px;
     }
 
     .sent {
-      background: var(--sent-bg);
-      color: white;
+      background-color: var(--sent-message-bg);
+      color: var(--sent-message-text);
       align-self: flex-end;
       border-bottom-right-radius: 4px;
     }
 
+    .deleted {
+      background-color: var(--deleted-message-bg) !important;
+      color: var(--deleted-message-text) !important;
+      font-style: italic;
+    }
+
     .message-text {
-      word-wrap: break-word;
+      font-size: 1rem;
       line-height: 1.4;
+      word-wrap: break-word;
+    }
+
+    .reply-preview {
+      background-color: rgba(0,0,0,0.05);
+      padding: 6px 10px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      font-size: 0.85rem;
+      color: #5f6368;
+    }
+
+    .reply-preview.sent {
+      background-color: rgba(255,255,255,0.2);
+    }
+
+    .reply-preview .reply-author {
+      font-weight: 600;
+      margin-right: 6px;
     }
 
     .message-time {
-      font-size: 0.75rem;
-      margin-top: 6px;
+      font-size: 0.7rem;
+      margin-top: 4px;
       opacity: 0.8;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      justify-content: flex-end;
     }
 
     .sent .message-time {
-      color: rgba(255,255,255,0.8);
-      justify-content: flex-end;
+      color: rgba(255, 255, 255, 0.8);
     }
 
-    .status-icon {
-      font-size: 0.75rem;
-      margin-left: 4px;
+    .message-actions {
+      position: absolute;
+      top: -32px;
+      right: 0;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      padding: 4px 0;
+      display: none;
+      z-index: 10;
+      min-width: 120px;
     }
 
-    .seen-text {
-      font-size: 0.7rem;
-      margin-left: 4px;
-      color: var(--green-seen);
+    .message:hover .message-actions {
+      display: block;
     }
 
-    /* Deleted Message */
-    .deleted-message {
-      font-style: italic;
-      color: #999;
-    }
-
-    /* Reactions */
-    .reactions {
-      display: flex;
-      gap: 4px;
-      margin-top: 6px;
-      flex-wrap: wrap;
-    }
-
-    .reaction {
-      background: var(--reaction-bg);
-      color: white;
-      padding: 2px 6px;
-      border-radius: 12px;
-      font-size: 0.7rem;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    /* Reply Tag */
-    .reply-tag {
-      background: rgba(0,0,0,0.05);
-      padding: 4px 8px;
-      border-radius: 8px;
-      margin-bottom: 8px;
+    .action-item {
+      padding: 8px 16px;
       font-size: 0.85rem;
-      color: #555;
+      cursor: pointer;
+      white-space: nowrap;
       display: flex;
       align-items: center;
-      gap: 6px;
     }
 
-    .reply-tag.sent {
-      background: rgba(255,255,255,0.2);
-      color: white;
+    .action-item:hover {
+      background-color: var(--blue-light);
+    }
+
+    .action-icon {
+      margin-right: 8px;
+      font-size: 14px;
+    }
+
+    /* Typing Indicator */
+    .typing-indicator {
+      display: flex;
+      align-items: center;
+      padding: 10px 16px;
+      background-color: var(--message-bg);
+      border-radius: 18px;
+      align-self: flex-start;
+      margin-bottom: 12px;
+      max-width: 120px;
+    }
+
+    .typing-dots {
+      display: flex;
+      margin-left: 8px;
+    }
+
+    .typing-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--gray-dark);
+      border-radius: 50%;
+      margin: 0 2px;
+      animation: typing 1.4s infinite;
+    }
+
+    .typing-dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes typing {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-5px); }
     }
 
     /* Input Area */
@@ -218,18 +273,54 @@
       background: white;
       padding: 12px 16px;
       display: flex;
-      gap: 12px;
+      align-items: center;
       border-top: 1px solid var(--border-gray);
-      box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-      position: relative;
+      position: sticky;
+      bottom: 0;
+      z-index: 100;
+    }
+
+    .replying-to {
+      background: var(--blue-light);
+      padding: 8px 12px;
+      border-radius: 16px;
+      margin-bottom: 10px;
+      display: none;
+      width: 100%;
+    }
+
+    .replying-to-content {
+      font-size: 0.85rem;
+      color: var(--blue-primary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .replying-to-text {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 80%;
+    }
+
+    .cancel-reply {
+      background: none;
+      border: none;
+      color: var(--blue-primary);
+      font-weight: bold;
+      cursor: pointer;
     }
 
     .message-input {
       flex: 1;
-      padding: 14px 16px;
       border: 1px solid var(--border-gray);
       border-radius: 24px;
+      padding: 12px 16px;
       font-size: 1rem;
+      resize: none;
+      height: 50px;
+      max-height: 120px;
       outline: none;
       transition: border-color 0.2s;
     }
@@ -238,434 +329,351 @@
       border-color: var(--blue-primary);
     }
 
-    /* Send Button */
-    .send-btn {
-      background: var(--blue-primary);
+    .send-button {
+      background: linear-gradient(135deg, var(--blue-primary), var(--blue-dark));
       color: white;
       border: none;
       width: 48px;
       height: 48px;
       border-radius: 50%;
+      margin-left: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       transition: all 0.2s;
-      position: relative;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      box-shadow: 0 2px 6px rgba(26, 115, 232, 0.3);
     }
 
-    .send-btn:hover {
-      background: var(--blue-dark);
+    .send-button:hover {
       transform: scale(1.05);
     }
 
-    .send-btn:active {
+    .send-button:active {
       transform: scale(0.95);
     }
 
     .send-icon {
-      width: 24px;
-      height: 24px;
-      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ffffff' d='M1.17,21.77L23,12,1.17,2.23,1,10l15,2-15,2Z'/%3E%3C/svg%3E") no-repeat center;
-      background-size: contain;
+      font-size: 20px;
     }
 
-    /* Context Menu */
-    .context-menu {
-      position: absolute;
+    /* Selection Mode */
+    .selection-mode {
       background: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-      z-index: 200;
-      display: none;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    .context-item {
-      padding: 14px 20px;
+      padding: 12px 16px;
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 12px;
-      cursor: pointer;
-      font-weight: 500;
-      transition: background 0.2s;
-    }
-
-    .context-item:hover {
-      background: var(--blue-light);
-    }
-
-    .context-icon {
-      width: 20px;
-      height: 20px;
-      fill: var(--blue-primary);
-    }
-
-    /* Delete Dialog */
-    .delete-dialog {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      border-radius: 16px;
-      padding: 24px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-      z-index: 300;
-      width: 90%;
-      max-width: 400px;
+      border-top: 1px solid var(--border-gray);
       display: none;
     }
 
-    .delete-dialog h3 {
-      color: var(--blue-primary);
-      margin-bottom: 16px;
-      font-size: 1.3rem;
-    }
-
-    .delete-options {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-
-    .delete-option {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px;
-      border: 1px solid var(--border-gray);
-      border-radius: 12px;
-      cursor: pointer;
-    }
-
-    .delete-option.selected {
-      border-color: var(--blue-primary);
-      background: var(--blue-light);
-    }
-
-    .delete-option input {
-      width: 20px;
-      height: 20px;
-      accent-color: var(--blue-primary);
-    }
-
-    .delete-buttons {
-      display: flex;
-      gap: 12px;
-    }
-
-    .delete-btn {
-      flex: 1;
-      padding: 12px;
-      border-radius: 12px;
+    .selection-info {
       font-weight: 600;
-      cursor: pointer;
-      text-align: center;
+      color: var(--blue-primary);
     }
 
-    .delete-btn.cancel {
-      background: #f1f3f4;
-      color: #5f6368;
-    }
-
-    .delete-btn.delete {
-      background: linear-gradient(135deg, var(--blue-primary), var(--blue-dark));
-      color: white;
-    }
-
-    /* Emoji Picker */
-    .emoji-picker {
-      position: absolute;
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.2);
-      z-index: 200;
-      display: none;
-      padding: 12px;
-      gap: 8px;
-      flex-wrap: wrap;
-      max-width: 280px;
-    }
-
-    .emoji {
-      width: 40px;
-      height: 40px;
+    .selection-actions {
       display: flex;
+      gap: 12px;
+    }
+
+    .selection-btn {
+      background: var(--blue-light);
+      border: none;
+      border-radius: 20px;
+      padding: 6px 16px;
+      font-weight: 600;
+      color: var(--blue-primary);
+      cursor: pointer;
+    }
+
+    .selection-btn.delete {
+      background: rgba(234, 67, 53, 0.1);
+      color: var(--red-badge);
+    }
+
+    /* Message Selection */
+    .message.selected {
+      outline: 2px solid var(--blue-primary);
+      outline-offset: -2px;
+    }
+
+    /* Empty State */
+    .empty-chat {
+      display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      font-size: 1.2rem;
-      cursor: pointer;
-      border-radius: 10px;
-      transition: transform 0.2s;
+      height: 100%;
+      padding: 40px 20px;
+      text-align: center;
+      color: #777;
     }
 
-    .emoji:hover {
-      transform: scale(1.2);
-      background: var(--blue-light);
+    .empty-chat h3 {
+      color: var(--blue-primary);
+      margin-bottom: 10px;
     }
 
-    /* Overlay */
-    .overlay {
+    .empty-chat p {
+      max-width: 300px;
+      line-height: 1.5;
+    }
+
+    /* Loading Screen */
+    .loading-screen {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0,0,0,0.5);
-      z-index: 250;
-      display: none;
-    }
-
-    /* Empty State */
-    .empty-chat {
-      text-align: center;
-      padding: 40px 20px;
-      color: #777;
-    }
-
-    .empty-chat p {
-      margin-top: 16px;
-      font-size: 1.1rem;
-    }
-
-    /* Loading */
-    .loading {
+      background: rgba(255,255,255,0.96);
       display: flex;
+      flex-direction: column;
       justify-content: center;
-      padding: 20px;
+      align-items: center;
+      z-index: 2000;
+      backdrop-filter: blur(3px);
     }
 
-    .spinner {
-      width: 32px;
-      height: 32px;
-      border: 3px solid rgba(26, 115, 232, 0.2);
+    .loader {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(26,115,232,0.2);
       border-top-color: var(--blue-primary);
       border-radius: 50%;
       animation: spin 1s linear infinite;
+      margin-bottom: 16px;
     }
 
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
 
-    /* Authentication Required Alert */
-    .auth-required {
+    /* Alert Styles */
+    .alert-overlay {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0,0,0,0.55);
+      background: rgba(26, 115, 232, 0.15);
       display: flex;
       justify-content: center;
       align-items: center;
       z-index: 1000;
-      backdrop-filter: blur(6px);
+      backdrop-filter: blur(8px);
     }
 
-    .auth-alert {
+    .alert {
       background: white;
-      border-radius: 24px;
-      padding: 40px;
+      border-radius: 20px;
+      padding: 32px;
       width: 90%;
-      max-width: 500px;
+      max-width: 480px;
       text-align: center;
-      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
-      border: 1px solid rgba(26, 115, 232, 0.15);
+      box-shadow: 0 12px 40px rgba(26, 115, 232, 0.25);
+      border: 2px solid var(--blue-light);
     }
 
-    .auth-alert h2 {
+    .alert h2 {
       color: var(--blue-primary);
-      margin-bottom: 20px;
+      margin-bottom: 18px;
       font-family: 'Montserrat', sans-serif;
       font-weight: 800;
-      font-size: 1.7rem;
+      font-size: 1.6rem;
     }
 
-    .auth-alert p {
-      margin-bottom: 28px;
-      line-height: 1.6;
+    .alert p {
+      margin-bottom: 24px;
+      line-height: 1.5;
       color: #444;
-      font-size: 1.05rem;
+      font-size: 1rem;
     }
 
-    .auth-btn {
+    .alert-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .alert-button {
       background: linear-gradient(135deg, var(--blue-primary), var(--blue-dark));
       color: white;
       border: none;
-      padding: 14px 32px;
-      border-radius: 14px;
-      font-size: 1.05rem;
+      padding: 12px 28px;
+      border-radius: 12px;
+      font-size: 1rem;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s;
+      flex: 1;
     }
 
-    .auth-btn:hover {
-      transform: scale(1.03);
-      box-shadow: 0 5px 15px rgba(26, 115, 232, 0.4);
+    .alert-button.secondary {
+      background: var(--gray-light);
+      color: var(--text-gray);
     }
 
-    /* Beautiful Alert */
-    .beautiful-alert {
+    .alert-button:hover {
+      transform: scale(1.02);
+      box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3);
+    }
+
+    /* Delete Options Modal */
+    .delete-options-modal {
       position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1001;
+      display: none;
+    }
+
+    .delete-options-content {
       background: white;
-      border-radius: 16px;
+      border-radius: 20px;
       padding: 24px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-      z-index: 1000;
       width: 90%;
       max-width: 400px;
-      display: none;
-      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     }
 
-    .beautiful-alert h3 {
+    .delete-options-content h3 {
       color: var(--blue-primary);
       margin-bottom: 16px;
-      font-size: 1.3rem;
+      font-size: 1.4rem;
     }
 
-    .beautiful-alert p {
-      margin-bottom: 20px;
-      line-height: 1.5;
+    .delete-option {
+      display: flex;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border-gray);
     }
 
-    .alert-btn {
-      background: linear-gradient(135deg, var(--blue-primary), var(--blue-dark));
-      color: white;
-      border: none;
-      padding: 12px 24px;
+    .delete-option:last-child {
+      border-bottom: none;
+    }
+
+    .delete-option input {
+      margin-right: 12px;
+      width: 18px;
+      height: 18px;
+      accent-color: var(--blue-primary);
+    }
+
+    .delete-option label {
+      flex: 1;
+      font-size: 1rem;
+      color: var(--text-gray);
+    }
+
+    .delete-option-description {
+      font-size: 0.85rem;
+      color: #666;
+      margin-top: 4px;
+      display: block;
+    }
+
+    .delete-options-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .delete-options-btn {
+      flex: 1;
+      padding: 12px;
       border-radius: 12px;
       font-weight: 600;
+      font-size: 1rem;
       cursor: pointer;
+      border: none;
       transition: all 0.2s;
     }
 
-    .alert-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    .delete-options-btn.cancel {
+      background: var(--gray-light);
+      color: var(--text-gray);
     }
 
-    /* Typing indicator animation */
-    .typing-indicator span {
-      height: 8px;
-      width: 8px;
-      float: left;
-      margin: 0 1px;
-      background-color: #999;
-      display: block;
-      border-radius: 50%;
-      opacity: 0.4;
+    .delete-options-btn.delete {
+      background: linear-gradient(135deg, var(--blue-primary), var(--blue-dark));
+      color: white;
     }
 
-    .typing-indicator span:nth-of-type(1) {
-      animation: typing 1s infinite;
-    }
-
-    .typing-indicator span:nth-of-type(2) {
-      animation: typing 1s infinite 0.2s;
-    }
-
-    .typing-indicator span:nth-of-type(3) {
-      animation: typing 1s infinite 0.4s;
-    }
-
-    @keyframes typing {
-      0%, 100% { opacity: 0.4; }
-      50% { opacity: 1; }
+    .delete-options-btn.delete:hover {
+      transform: scale(1.02);
+      box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3);
     }
   </style>
 </head>
 <body>
-  <!-- Authentication Required Modal (Hidden by default) -->
-  <div class="auth-required" id="authRequiredModal" style="display: none;">
-    <div class="auth-alert">
-      <h2>Authentication Required</h2>
-      <p>Please log in to access your messages.</p>
-      <button class="auth-btn" id="goToLogin">Go to Login</button>
-    </div>
-  </div>
-
-  <!-- Beautiful Alert Modal -->
-  <div class="beautiful-alert" id="beautifulAlert" style="display: none;">
-    <h3 id="alertTitle">Alert</h3>
-    <p id="alertMessage">This is an alert message.</p>
-    <button class="alert-btn" id="alertBtn">OK</button>
-  </div>
-
-  <div class="header">
+  <div class="chat-header">
     <button class="back-btn" id="backBtn">←</button>
-    <div class="contact-info">
-      <div class="contact-name" id="contactName">Loading...</div>
-      <div class="contact-status" id="contactStatus">Online</div>
-      <div class="typing-indicator" id="typingIndicator">
-        <span></span>
-        <span></span>
-        <span></span>
+    <div class="header-info">
+      <div class="recipient-name" id="recipientName">Loading...</div>
+      <div class="online-status">
+        <div class="status-indicator offline" id="statusIndicator"></div>
+        <span id="statusText">Offline</span>
       </div>
     </div>
   </div>
 
   <div class="chat-container" id="chatContainer">
-    <div class="loading">
-      <div class="spinner"></div>
+    <!-- Messages will be loaded here -->
+  </div>
+
+  <div class="selection-mode" id="selectionMode">
+    <div class="selection-info" id="selectionInfo">0 selected</div>
+    <div class="selection-actions">
+      <button class="selection-btn delete" id="deleteSelected">Delete</button>
+      <button class="selection-btn" id="cancelSelection">Cancel</button>
     </div>
   </div>
 
   <div class="input-area">
-    <input type="text" class="message-input" id="messageInput" placeholder="Type a message..." autocomplete="off">
-    <button class="send-btn" id="sendBtn">
-      <div class="send-icon"></div>
+    <div class="replying-to" id="replyingTo">
+      <div class="replying-to-content">
+        <div class="replying-to-text" id="replyingToText">Replying to...</div>
+        <button class="cancel-reply" id="cancelReply">✕</button>
+      </div>
+    </div>
+    <textarea class="message-input" id="messageInput" placeholder="Type a message..."></textarea>
+    <button class="send-button" id="sendButton">
+      <span class="send-icon">➤</span>
     </button>
   </div>
 
-  <!-- Context Menu -->
-  <div class="context-menu" id="contextMenu">
-    <div class="context-item" id="replyItem">
-      <svg class="context-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-        <path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/>
-      </svg>
-      Reply
-    </div>
-    <div class="context-item" id="copyItem">
-      <svg class="context-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-        <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
-      </svg>
-      Copy
-    </div>
-    <div class="context-item" id="deleteItem">
-      <svg class="context-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-        <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-      </svg>
-      Delete
-    </div>
-  </div>
-
-  <!-- Delete Dialog -->
-  <div class="overlay" id="deleteOverlay"></div>
-  <div class="delete-dialog" id="deleteDialog">
-    <h3>Delete Message</h3>
-    <div class="delete-options">
-      <div class="delete-option selected" data-option="me">
-        <input type="radio" name="deleteOption" id="deleteMe" checked>
-        <label for="deleteMe">Delete for me</label>
+  <!-- Delete Options Modal -->
+  <div class="delete-options-modal" id="deleteOptionsModal">
+    <div class="delete-options-content">
+      <h3>Delete Message</h3>
+      <div class="delete-option">
+        <input type="radio" id="deleteForMe" name="deleteOption" checked>
+        <label for="deleteForMe">
+          Delete for me
+          <span class="delete-option-description">Only you will see this message removed</span>
+        </label>
       </div>
-      <div class="delete-option" data-option="everyone">
-        <input type="radio" name="deleteOption" id="deleteEveryone">
-        <label for="deleteEveryone">Delete for everyone</label>
+      <div class="delete-option">
+        <input type="radio" id="deleteForEveryone" name="deleteOption">
+        <label for="deleteForEveryone">
+          Delete for everyone
+          <span class="delete-option-description">Both you and the recipient will see this message removed</span>
+        </label>
       </div>
-    </div>
-    <div class="delete-buttons">
-      <div class="delete-btn cancel" id="cancelDelete">Cancel</div>
-      <div class="delete-btn delete" id="confirmDelete">Delete</div>
+      <div class="delete-options-actions">
+        <button class="delete-options-btn cancel" id="cancelDelete">Cancel</button>
+        <button class="delete-options-btn delete" id="confirmDelete">Delete</button>
+      </div>
     </div>
   </div>
 
@@ -675,7 +683,7 @@
   <script src="https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore-compat.js"></script>
 
   <script>
-    // Firebase Configuration
+    // 🔑 Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyCusJ_rFuOWwy1QFZedtyJr7igCeiIg3a0",
       authDomain: "my-sign-up-and-login.firebaseapp.com",
@@ -689,181 +697,475 @@
     const app = firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
+    const ADMIN_EMAIL = "bluepay863@gmail.com";
+
+    let currentUser = null;
+    let recipient = null;
+    let chatId = null;
+    let messages = [];
+    let selectedMessages = new Set();
+    let isTyping = false;
+    let typingTimeout = null;
+    let isInitialized = false;
+    let replyToMessage = null;
+    let messageToDelete = null;
+    let isOwnMessage = false;
 
     // DOM Elements
     const chatContainer = document.getElementById('chatContainer');
     const messageInput = document.getElementById('messageInput');
-    const sendBtn = document.getElementById('sendBtn');
-    const contactName = document.getElementById('contactName');
+    const sendButton = document.getElementById('sendButton');
     const backBtn = document.getElementById('backBtn');
-    const contextMenu = document.getElementById('contextMenu');
-    const copyItem = document.getElementById('copyItem');
-    const deleteItem = document.getElementById('deleteItem');
-    const replyItem = document.getElementById('replyItem');
-    const deleteDialog = document.getElementById('deleteDialog');
-    const deleteOverlay = document.getElementById('deleteOverlay');
+    const recipientNameEl = document.getElementById('recipientName');
+    const statusIndicator = document.getElementById('statusIndicator');
+    const statusText = document.getElementById('statusText');
+    const selectionMode = document.getElementById('selectionMode');
+    const selectionInfo = document.getElementById('selectionInfo');
+    const deleteSelected = document.getElementById('deleteSelected');
+    const cancelSelection = document.getElementById('cancelSelection');
+    const replyingTo = document.getElementById('replyingTo');
+    const replyingToText = document.getElementById('replyingToText');
+    const cancelReply = document.getElementById('cancelReply');
+    const deleteOptionsModal = document.getElementById('deleteOptionsModal');
+    const deleteForMeRadio = document.getElementById('deleteForMe');
+    const deleteForEveryoneRadio = document.getElementById('deleteForEveryone');
     const cancelDelete = document.getElementById('cancelDelete');
     const confirmDelete = document.getElementById('confirmDelete');
-    const deleteOptions = document.querySelectorAll('.delete-option');
-    const authRequiredModal = document.getElementById('authRequiredModal');
-    const goToLogin = document.getElementById('goToLogin');
-    const typingIndicator = document.getElementById('typingIndicator');
-    const beautifulAlert = document.getElementById('beautifulAlert');
-    const alertTitle = document.getElementById('alertTitle');
-    const alertMessage = document.getElementById('alertMessage');
-    const alertBtn = document.getElementById('alertBtn');
-    const contactStatus = document.getElementById('contactStatus');
 
-    // App State
-    let currentUser = null;
-    let recipientId = null;
-    let recipientName = "User";
-    let chatId = null;
-    let messages = [];
-    let activeMessage = null;
-    let isTyping = false;
-    let typingTimeout = null;
-    let replyToMessage = null;
-    let isRendering = false;
-    let unsubscribeMessages = null;
-    let unsubscribeTyping = null;
-    const ADMIN_EMAIL = "bluepay863@gmail.com";
+    // Show loading screen
+    function showLoading() {
+      if (document.getElementById('loadingScreen')) return;
+      document.body.insertAdjacentHTML('beforeend', `
+        <div class="loading-screen" id="loadingScreen">
+          <div class="loader"></div>
+          <div>Loading chat...</div>
+        </div>
+      `);
+    }
 
-    // Touch handling for mobile
-    let touchStartTime = 0;
-    let touchTimeout = null;
-    const LONG_PRESS_DURATION = 500; // milliseconds
+    // Hide loading screen
+    function hideLoading() {
+      const el = document.getElementById('loadingScreen');
+      if (el) el.remove();
+    }
 
-    // Initialize
-    function init() {
-      // Check authentication
-      auth.onAuthStateChanged(user => {
-        if (!user) {
-          authRequiredModal.style.display = 'flex';
-          return;
+    // Show alert
+    function showBeautifulAlert(title, message, callback = null) {
+      // Remove existing alert if any
+      const existingOverlay = document.querySelector('.alert-overlay');
+      if (existingOverlay) existingOverlay.remove();
+      
+      const overlay = document.createElement('div');
+      overlay.className = 'alert-overlay';
+      const alertDiv = document.createElement('div');
+      alertDiv.className = 'alert';
+      alertDiv.innerHTML = `
+        <h2>${title}</h2>
+        <p>${message}</p>
+        <button class="alert-button">${callback ? "OK" : "Close"}</button>
+      `;
+      overlay.appendChild(alertDiv);
+      document.body.appendChild(overlay);
+
+      const button = alertDiv.querySelector('.alert-button');
+      button.addEventListener('click', () => {
+        document.body.removeChild(overlay);
+        if (callback) callback();
+      });
+      
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+          document.body.removeChild(overlay);
+          if (callback) callback();
         }
-        
-        currentUser = user;
-        setupEventListeners();
-        
-        // Get recipient from URL
-        const urlParams = new URLSearchParams(window.location.search);
-        recipientId = urlParams.get('to');
-        
-        if (!recipientId) {
-          showBeautifulAlert(
-            "Chat Error",
-            "No recipient specified! Please return to your friends list.",
-            "Go to Friends",
-            () => {
-              window.location.href = "friends.html";
-            }
-          );
-          return;
-        }
-        
-        // Verify recipient is in friends list
-        verifyRecipient()
-          .then(isValid => {
-            if (!isValid) {
-              showBeautifulAlert(
-                "Access Denied",
-                "You can only chat with users from your friends list.",
-                "Go to Friends",
-                () => {
-                  window.location.href = "friends.html";
-                }
-              );
-              return;
-            }
-            
-            // Load recipient info and start chat
-            loadRecipientInfo()
-              .then(() => {
-                chatId = [currentUser.uid, recipientId].sort().join('_');
-                                startRealtimeListeners();
-                hideLoading();
-              })
-              .catch(error => {
-                console.error("Error loading recipient:", error);
-                showBeautifulAlert("Error", "Failed to load recipient information.");
-              });
-          })
-          .catch(error => {
-            console.error("Error verifying recipient:", error);
-            showBeautifulAlert("Error", "Failed to verify recipient.");
-          });
       });
     }
 
-    // Verify recipient is in friends list
-    async function verifyRecipient() {
-      try {
-        // Check if recipient exists in users collection
-        const recipientDoc = await db.collection('users').doc(recipientId).get();
-        if (!recipientDoc.exists) {
-          return false;
+    // Show confirmation alert
+    function showConfirmationAlert(title, message, onConfirm, onCancel) {
+      const existingOverlay = document.querySelector('.alert-overlay');
+      if (existingOverlay) existingOverlay.remove();
+      
+            const overlay = document.createElement('div');
+      overlay.className = 'alert-overlay';
+      const alertDiv = document.createElement('div');
+      alertDiv.className = 'alert';
+      alertDiv.innerHTML = `
+        <h2>${title}</h2>
+        <p>${message}</p>
+        <div class="alert-buttons">
+          <button class="alert-button secondary">Cancel</button>
+          <button class="alert-button">Confirm</button>
+        </div>
+      `;
+      overlay.appendChild(alertDiv);
+      document.body.appendChild(overlay);
+
+      const confirmBtn = alertDiv.querySelector('.alert-button:last-child');
+      const cancelBtn = alertDiv.querySelector('.alert-button:first-child');
+      
+      confirmBtn.addEventListener('click', () => {
+        document.body.removeChild(overlay);
+        if (onConfirm) onConfirm();
+      });
+      
+      cancelBtn.addEventListener('click', () => {
+        document.body.removeChild(overlay);
+        if (onCancel) onCancel();
+      });
+      
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+          document.body.removeChild(overlay);
+          if (onCancel) onCancel();
         }
-        
-        // For regular users, only allow chatting with admin
-        if (currentUser.email !== ADMIN_EMAIL) {
-          return recipientDoc.data().email === ADMIN_EMAIL;
-        }
-        
-        // Admin can chat with any user
-        return true;
-      } catch (error) {
-        console.error("Error verifying recipient:", error);
-        return false;
+      });
+    }
+
+    // Update online status
+    function updateOnlineStatus() {
+      if (!recipient) return;
+      
+      // In a real app, you would check the user's online status
+      // For this demo, we'll simulate online status
+      const isOnline = Math.random() > 0.3; // 70% chance of being online
+      
+      if (isOnline) {
+        statusIndicator.className = 'status-indicator online';
+        statusText.textContent = 'Online';
+      } else {
+        statusIndicator.className = 'status-indicator offline';
+        statusText.textContent = 'Offline';
       }
     }
 
-    // Load recipient information
-    async function loadRecipientInfo() {
+    // Setup online status listener
+    function setupOnlineStatusListener() {
+      // In a real app, you would listen to the user's presence
+      // For this demo, we'll update every 30 seconds
+      setInterval(updateOnlineStatus, 30000);
+    }
+
+    // Load messages
+    async function loadMessages() {
       try {
-        const recipientDoc = await db.collection('users').doc(recipientId).get();
-        if (recipientDoc.exists) {
-          const recipientData = recipientDoc.data();
-          recipientName = recipientData.name || "User";
-          contactName.textContent = recipientName;
+        const messagesSnap = await db.collection('chats').doc(chatId).collection('messages')
+          .orderBy('timestamp', 'asc')
+          .get();
+        
+        messages = [];
+        messagesSnap.forEach(doc => {
+          messages.push({
+            id: doc.id,
+            ...doc.data()
+          });
+        });
+        
+        renderMessages();
+      } catch (error) {
+        console.error("Error loading messages:", error);
+        showBeautifulAlert("Error", "Failed to load messages");
+      }
+    }
+
+    // Render messages
+    function renderMessages() {
+      chatContainer.innerHTML = '';
+      
+      if (messages.length === 0) {
+        chatContainer.innerHTML = `
+          <div class="empty-chat">
+            <h3>No messages yet</h3>
+            <p>Send a message to start the conversation!</p>
+          </div>
+        `;
+        return;
+      }
+      
+      messages.forEach(msg => {
+        const isSent = msg.senderId === currentUser.uid;
+        const isRead = msg.readBy && msg.readBy.includes(recipient.uid);
+        const time = formatTime(msg.timestamp);
+        const isDeleted = msg.deletedFor && 
+          (msg.deletedFor.includes(currentUser.uid) || msg.deletedFor.includes('everyone'));
+        
+        const messageEl = document.createElement('div');
+        messageEl.className = `message ${isSent ? 'sent' : 'received'} ${isDeleted ? 'deleted' : ''}`;
+        messageEl.dataset.messageId = msg.id;
+        messageEl.dataset.senderId = msg.senderId;
+        
+        let messageContent = '';
+        if (isDeleted) {
+          messageContent = '<div class="message-text">This message was deleted</div>';
         } else {
-          recipientName = "Unknown User";
-          contactName.textContent = recipientName;
+          // Handle reply preview
+          let replyPreview = '';
+          if (msg.replyTo) {
+            const repliedMsg = messages.find(m => m.id === msg.replyTo.messageId);
+            if (repliedMsg && !repliedMsg.deletedFor) {
+              const replyAuthor = repliedMsg.senderId === currentUser.uid ? 
+                'You' : 
+                (recipient.uid === repliedMsg.senderId ? recipientNameEl.textContent : 'Unknown');
+              replyPreview = `
+                <div class="reply-preview ${isSent ? 'sent' : 'received'}">
+                  <span class="reply-author">${replyAuthor}:</span> 
+                  ${repliedMsg.text}
+                </div>
+              `;
+            }
+          }
+          
+          messageContent = `
+            ${replyPreview}
+            <div class="message-text">${msg.text}</div>
+          `;
         }
+        
+        messageEl.innerHTML = `
+          ${messageContent}
+          <div class="message-time">${time}${isSent && isRead && !isDeleted ? ' ✓✓' : ''}</div>
+          ${!isDeleted ? `
+            <div class="message-actions">
+              <div class="action-item" data-action="reply">
+                <span class="action-icon">↩️</span> Reply
+              </div>
+              <div class="action-item" data-action="delete">
+                <span class="action-icon">🗑️</span> Delete
+              </div>
+            </div>
+          ` : ''}
+        `;
+        
+        // Add event listeners for actions
+        const actions = messageEl.querySelectorAll('.action-item');
+        actions.forEach(action => {
+          action.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const actionType = action.dataset.action;
+            if (actionType === 'reply') {
+              setReplyToMessage(msg);
+            } else if (actionType === 'delete') {
+              // Show delete options modal
+              messageToDelete = msg.id;
+              isOwnMessage = msg.senderId === currentUser.uid;
+              
+              // Update modal based on message ownership
+              if (isOwnMessage) {
+                deleteForEveryoneRadio.disabled = false;
+                deleteForEveryoneRadio.parentElement.style.opacity = '1';
+                deleteForEveryoneRadio.parentElement.style.pointerEvents = 'auto';
+              } else {
+                deleteForEveryoneRadio.disabled = true;
+                deleteForEveryoneRadio.parentElement.style.opacity = '0.5';
+                deleteForEveryoneRadio.parentElement.style.pointerEvents = 'none';
+                deleteForMeRadio.checked = true;
+              }
+              
+              deleteOptionsModal.style.display = 'flex';
+            }
+          });
+        });
+        
+        // Add selection handler
+        messageEl.addEventListener('click', (e) => {
+          if (selectionMode.style.display === 'flex') {
+            toggleMessageSelection(msg.id, messageEl);
+          }
+        });
+        
+        // Add long press for mobile
+        let pressTimer;
+        messageEl.addEventListener('touchstart', (e) => {
+          pressTimer = setTimeout(() => {
+            if (selectionMode.style.display !== 'flex') {
+              // Show actions on long press
+              const actions = messageEl.querySelector('.message-actions');
+              if (actions) {
+                actions.style.display = 'block';
+                setTimeout(() => {
+                  actions.style.display = 'none';
+                }, 3000);
+              }
+            } else {
+              toggleMessageSelection(msg.id, messageEl);
+            }
+          }, 500);
+        });
+        
+        messageEl.addEventListener('touchend', () => {
+          clearTimeout(pressTimer);
+        });
+        
+        messageEl.addEventListener('touchmove', () => {
+          clearTimeout(pressTimer);
+        });
+        
+        chatContainer.appendChild(messageEl);
+      });
+      
+      // Scroll to bottom
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    // Format timestamp
+    function formatTime(timestamp) {
+      if (!timestamp) return "";
+      const date = new Date(timestamp.seconds ? timestamp.seconds * 1000 : timestamp);
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    // Set reply to message
+    function setReplyToMessage(message) {
+      replyToMessage = message;
+      replyingToText.textContent = message.text.length > 30 ? 
+        message.text.substring(0, 30) + '...' : 
+        message.text;
+      replyingTo.style.display = 'block';
+      messageInput.focus();
+    }
+
+    // Cancel reply
+    function cancelReplyToMessage() {
+      replyToMessage = null;
+      replyingTo.style.display = 'none';
+    }
+
+    // Handle sending message
+    async function sendMessage() {
+      const text = messageInput.value.trim();
+      if (!text) return;
+      
+      try {
+        const newMessage = {
+          text: text,
+          senderId: currentUser.uid,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+          readBy: []
+        };
+        
+        // Add reply reference if replying
+        if (replyToMessage) {
+          newMessage.replyTo = {
+            messageId: replyToMessage.id,
+            senderId: replyToMessage.senderId,
+            text: replyToMessage.text
+          };
+          cancelReplyToMessage();
+        }
+        
+        await db.collection('chats').doc(chatId).collection('messages').add(newMessage);
+        messageInput.value = '';
+        messageInput.style.height = '50px';
+        
+        // Scroll to bottom
+        chatContainer.scrollTop = chatContainer.scrollHeight;
       } catch (error) {
-        console.error("Error loading recipient info:", error);
-        recipientName = "User";
-        contactName.textContent = recipientName;
+        console.error("Error sending message:", error);
+        showBeautifulAlert("Error", "Failed to send message");
       }
     }
 
-    // Start real-time listeners
-    function startRealtimeListeners() {
-      // Listen for messages
-      unsubscribeMessages = db.collection('chats').doc(chatId).collection('messages')
+    // Handle delete message based on selected option
+    function handleDeleteMessage() {
+      const deleteForEveryone = deleteForEveryoneRadio.checked;
+      
+      if (deleteForEveryone) {
+        // Delete for everyone
+        deleteMessageForEveryone(messageToDelete);
+      } else {
+        // Delete for me only
+        deleteMessageForUser(messageToDelete, currentUser.uid);
+      }
+      
+      // Close modal
+      deleteOptionsModal.style.display = 'none';
+    }
+
+    // Delete message for current user only
+    async function deleteMessageForUser(messageId, userId) {
+      try {
+        // Update the message to mark as deleted for this user
+        await db.collection('chats').doc(chatId).collection('messages').doc(messageId).update({
+          deletedFor: firebase.firestore.FieldValue.arrayUnion(userId)
+        });
+      } catch (error) {
+        console.error("Error deleting message:", error);
+        showBeautifulAlert("Error", "Failed to delete message");
+      }
+    }
+
+    // Delete message for everyone
+    async function deleteMessageForEveryone(messageId) {
+      try {
+        // Mark as deleted for everyone
+        await db.collection('chats').doc(chatId).collection('messages').doc(messageId).update({
+          deletedFor: ['everyone']
+        });
+      } catch (error) {
+        console.error("Error deleting message:", error);
+        showBeautifulAlert("Error", "Failed to delete message");
+      }
+    }
+
+    // Setup message listener
+    function setupMessageListener() {
+      db.collection('chats').doc(chatId).collection('messages')
         .orderBy('timestamp', 'asc')
         .onSnapshot(snapshot => {
-          messages = [];
-          snapshot.forEach(doc => {
-            messages.push({
-              id: doc.id,
-              ...doc.data()
-            });
+          snapshot.docChanges().forEach(change => {
+            if (change.type === 'added') {
+              const newMsg = {
+                id: change.doc.id,
+                ...change.doc.data()
+              };
+              
+              // Mark as read if it's from the recipient
+              if (newMsg.senderId === recipient.uid) {
+                markMessageAsRead(newMsg.id);
+              }
+              
+              messages.push(newMsg);
+            }
+            else if (change.type === 'modified') {
+              const index = messages.findIndex(m => m.id === change.doc.id);
+              if (index !== -1) {
+                messages[index] = {
+                  id: change.doc.id,
+                  ...change.doc.data()
+                };
+              }
+            }
+            else if (change.type === 'removed') {
+              const index = messages.findIndex(m => m.id === change.doc.id);
+              if (index !== -1) {
+                messages.splice(index, 1);
+              }
+            }
           });
+          
           renderMessages();
-        }, error => {
-          console.error("Error listening to messages:", error);
-          showBeautifulAlert("Error", "Failed to load messages.");
         });
+    }
 
-      // Listen for typing status
-      unsubscribeTyping = db.collection('chats').doc(chatId).collection('typing').doc(recipientId)
-        .onSnapshot(snapshot => {
-          if (snapshot.exists) {
-            const typingData = snapshot.data();
-            if (typingData.isTyping && 
-                typingData.timestamp && 
-                (Date.now() - typingData.timestamp.toDate().getTime()) < 5000) {
+    // Mark message as read
+    async function markMessageAsRead(messageId) {
+      try {
+        await db.collection('chats').doc(chatId).collection('messages').doc(messageId).update({
+          readBy: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
+        });
+      } catch (error) {
+        console.error("Error marking message as read:", error);
+      }
+    }
+
+    // Setup typing listener
+    function setupTypingListener() {
+      // Listen for typing indicators
+      db.collection('chats').doc(chatId).collection('typing').doc(recipient.uid)
+        .onSnapshot(doc => {
+          if (doc.exists) {
+            const data = doc.data();
+            if (data.isTyping) {
               showTypingIndicator();
             } else {
               hideTypingIndicator();
@@ -871,476 +1173,232 @@
           } else {
             hideTypingIndicator();
           }
-        }, error => {
-          console.error("Error listening to typing status:", error);
         });
-
-      // Mark messages as read
-      markMessagesAsRead();
-    }
-
-    // Mark messages as read
-    async function markMessagesAsRead() {
-      try {
-        const unreadMessages = messages.filter(msg => 
-          msg.senderId === recipientId && 
-          (!msg.readBy || !msg.readBy.includes(currentUser.uid))
-        );
-        
-        if (unreadMessages.length > 0) {
-          const batch = db.batch();
-          unreadMessages.forEach(msg => {
-            const msgRef = db.collection('chats').doc(chatId).collection('messages').doc(msg.id);
-            batch.update(msgRef, {
-              readBy: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
-            });
-          });
-          await batch.commit();
-        }
-      } catch (error) {
-        console.error("Error marking messages as read:", error);
-      }
-    }
-
-    // Setup event listeners
-    function setupEventListeners() {
-      // Send message
-      sendBtn.addEventListener('click', sendMessage);
-      messageInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-          e.preventDefault();
-          sendMessage();
-        }
-      });
-      
-      // Input events for typing indicator
-      messageInput.addEventListener('input', startTyping);
-      
-      // Context menu (desktop right-click)
-      chatContainer.addEventListener('contextmenu', showContextMenu);
-      
-      // Touch events for mobile long press
-      chatContainer.addEventListener('touchstart', handleTouchStart);
-      chatContainer.addEventListener('touchend', handleTouchEnd);
-      chatContainer.addEventListener('touchmove', handleTouchMove);
-      
-      // Context menu actions
-      contextMenu.addEventListener('click', handleContextAction);
-      
-      // Delete dialog
-      deleteItem.addEventListener('click', showDeleteDialog);
-      cancelDelete.addEventListener('click', hideDeleteDialog);
-      confirmDelete.addEventListener('click', deleteMessage);
-      deleteOverlay.addEventListener('click', hideDeleteDialog);
-      
-      // Delete options selection
-      deleteOptions.forEach(option => {
-        option.addEventListener('click', () => {
-          deleteOptions.forEach(opt => opt.classList.remove('selected'));
-          option.classList.add('selected');
-        });
-      });
-      
-      // Back button
-      backBtn.addEventListener('click', () => {
-        window.location.href = 'friends.html';
-      });
-      
-      // Alert button
-      alertBtn.addEventListener('click', () => {
-        beautifulAlert.style.display = 'none';
-      });
-      
-      // Login button
-      goToLogin.addEventListener('click', () => {
-        window.location.href = 'login.html';
-      });
-      
-      // Cleanup on unload
-      window.addEventListener('beforeunload', cleanup);
-    }
-
-    // Handle touch start for long press
-    function handleTouchStart(e) {
-      // Find the message element
-      let messageElement = e.target;
-      while (messageElement && !messageElement.classList.contains('message')) {
-        messageElement = messageElement.parentElement;
-      }
-      
-      if (!messageElement) return;
-      
-      const messageId = messageElement.dataset.messageId;
-      activeMessage = messages.find(msg => msg.id === messageId);
-      
-      if (!activeMessage) return;
-      
-      // Prevent default to avoid scrolling
-      e.preventDefault();
-      
-      // Record start time
-      touchStartTime = Date.now();
-      
-      // Set timeout for long press
-      touchTimeout = setTimeout(() => {
-        showContextMenu(e);
-      }, LONG_PRESS_DURATION);
-    }
-
-    // Handle touch end
-    function handleTouchEnd(e) {
-      // Clear the timeout
-      if (touchTimeout) {
-        clearTimeout(touchTimeout);
-        touchTimeout = null;
-      }
-    }
-
-    // Handle touch move (cancel long press if user moves)
-    function handleTouchMove(e) {
-      if (touchTimeout) {
-        clearTimeout(touchTimeout);
-        touchTimeout = null;
-      }
-    }
-
-    // Show context menu
-    function showContextMenu(e) {
-      e.preventDefault();
-      
-      // Find the message element if not already set (for desktop)
-      if (!activeMessage) {
-        let messageElement = e.target;
-        while (messageElement && !messageElement.classList.contains('message')) {
-          messageElement = messageElement.parentElement;
-        }
-        
-        if (!messageElement) return;
-        
-        const messageId = messageElement.dataset.messageId;
-        activeMessage = messages.find(msg => msg.id === messageId);
-        
-        if (!activeMessage) return;
-      }
-      
-      // Only allow deleting own messages
-      if (activeMessage.senderId !== currentUser.uid) {
-        // Hide delete option for others' messages
-        deleteItem.style.display = 'none';
-      } else {
-        deleteItem.style.display = 'flex';
-      }
-      
-      // Position context menu
-      if (e.type === 'touchstart' || e.type === 'touchend') {
-        // Mobile positioning
-        const touch = e.touches ? e.touches[0] : e.changedTouches[0];
-        contextMenu.style.left = (touch.clientX - 100) + 'px';
-        contextMenu.style.top = (touch.clientY - 20) + 'px';
-      } else {
-        // Desktop positioning
-        contextMenu.style.left = e.pageX + 'px';
-        contextMenu.style.top = e.pageY + 'px';
-      }
-      
-      contextMenu.style.display = 'flex';
-      
-      // Hide context menu when clicking elsewhere
-      document.addEventListener('click', hideContextMenu);
-      document.addEventListener('touchstart', hideContextMenu, { passive: true });
-    }
-
-    // Hide context menu
-    function hideContextMenu(e) {
-      // Don't hide if clicking on the context menu itself
-      if (e.target.closest('.context-menu')) return;
-      
-      contextMenu.style.display = 'none';
-      deleteItem.style.display = 'flex'; // Reset visibility
-      activeMessage = null;
-      document.removeEventListener('click', hideContextMenu);
-      document.removeEventListener('touchstart', hideContextMenu);
-    }
-
-    // Handle context action
-    function handleContextAction(e) {
-      const action = e.target.closest('.context-item');
-      if (!action) return;
-      
-      hideContextMenu(e);
-      
-      if (action.id === 'copyItem') {
-        copyMessage();
-      } else if (action.id === 'deleteItem') {
-        showDeleteDialog();
-      } else if (action.id === 'replyItem') {
-        replyToMessage = activeMessage;
-        messageInput.placeholder = `Replying to ${activeMessage.senderId === currentUser.uid ? 'you' : recipientName}: ${activeMessage.text.substring(0, 20)}...`;
-        messageInput.focus();
-      }
-    }
-
-    // Copy message
-    function copyMessage() {
-      if (!activeMessage) return;
-      navigator.clipboard.writeText(activeMessage.text);
-      showBeautifulAlert("Copied!", "Message copied to clipboard", "OK");
-    }
-
-    // Show delete dialog
-    function showDeleteDialog() {
-      deleteDialog.style.display = 'block';
-      deleteOverlay.style.display = 'block';
-    }
-
-    // Hide delete dialog
-    function hideDeleteDialog() {
-      deleteDialog.style.display = 'none';
-      deleteOverlay.style.display = 'none';
-    }
-
-    // Delete message
-    async function deleteMessage() {
-      if (!activeMessage) return;
-      
-      // Security check: only allow deleting own messages
-      if (activeMessage.senderId !== currentUser.uid) {
-        showBeautifulAlert("Permission Denied", "You can only delete your own messages.");
-        hideDeleteDialog();
-        return;
-      }
-      
-      const deleteOption = document.querySelector('.delete-option.selected').dataset.option;
-      
-      try {
-        if (deleteOption === 'everyone') {
-          // Delete for everyone - remove from Firestore
-          await db.collection('chats').doc(chatId).collection('messages').doc(activeMessage.id).delete();
-        } else {
-          // Delete for me - mark as deleted
-          await db.collection('chats').doc(chatId).collection('messages').doc(activeMessage.id).update({
-            deleted: true,
-            deletedBy: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
-          });
-        }
-        
-        hideDeleteDialog();
-      } catch (error) {
-        console.error("Error deleting message:", error);
-        showBeautifulAlert("Error", "Failed to delete message. Please try again.");
-      }
-    }
-
-    // Start typing indicator
-    async function startTyping() {
-      if (isTyping) return;
-      
-      isTyping = true;
-      
-      try {
-        // Update typing status in Firestore
-        await db.collection('chats').doc(chatId).collection('typing').doc(currentUser.uid).set({
-          isTyping: true,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        
-        // Clear typing status after 2 seconds of inactivity
-        if (typingTimeout) {
-          clearTimeout(typingTimeout);
-        }
-        
-        typingTimeout = setTimeout(async () => {
-          isTyping = false;
-          try {
-            await db.collection('chats').doc(chatId).collection('typing').doc(currentUser.uid).set({
-              isTyping: false,
-              timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            });
-          } catch (error) {
-            console.error("Error clearing typing status:", error);
-          }
-        }, 2000);
-      } catch (error) {
-        console.error("Error setting typing status:", error);
-        isTyping = false;
-      }
     }
 
     // Show typing indicator
     function showTypingIndicator() {
-      typingIndicator.style.display = 'block';
-      contactStatus.style.display = 'none';
+      // Remove existing typing indicator
+      const existing = document.querySelector('.typing-indicator');
+      if (existing) existing.remove();
+      
+      // Create new typing indicator
+      const indicator = document.createElement('div');
+      indicator.className = 'typing-indicator';
+      indicator.innerHTML = `
+        <span>${recipient.email === ADMIN_EMAIL ? "BluePay Admin" : recipient.name}</span>
+        <div class="typing-dots">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      `;
+      
+      chatContainer.appendChild(indicator);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
     }
 
     // Hide typing indicator
     function hideTypingIndicator() {
-      typingIndicator.style.display = 'none';
-      contactStatus.style.display = 'block';
+      const existing = document.querySelector('.typing-indicator');
+      if (existing) existing.remove();
     }
 
-    // Send message
-    async function sendMessage() {
-      const text = messageInput.value.trim();
-      if (!text) return;
-      
+    // Send typing indicator
+    async function sendTypingIndicator(isTyping) {
       try {
-        const newMessage = {
-          text,
-          senderId: currentUser.uid,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-          readBy: [currentUser.uid],
-          replyTo: replyToMessage ? {
-            messageId: replyToMessage.id,
-            senderId: replyToMessage.senderId,
-            text: replyToMessage.text
-          } : null
-        };
-        
-        // Add to Firestore
-        await db.collection('chats').doc(chatId).collection('messages').add(newMessage);
-        
-        messageInput.value = '';
-        replyToMessage = null;
-        messageInput.placeholder = "Type a message...";
-        
-        // Scroll to bottom
-        setTimeout(() => {
-          chatContainer.scrollTop = chatContainer.scrollHeight;
-        }, 100);
+        await db.collection('chats').doc(chatId).collection('typing').doc(currentUser.uid).set({
+          isTyping: isTyping,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
       } catch (error) {
-        console.error("Error sending message:", error);
-        showBeautifulAlert("Error", "Failed to send message. Please try again.");
+        console.error("Error sending typing indicator:", error);
       }
     }
 
-    // Render messages
-    function renderMessages() {
-      if (isRendering) return;
-      isRendering = true;
+    // Toggle message selection
+    function toggleMessageSelection(messageId, element) {
+      if (selectedMessages.has(messageId)) {
+        selectedMessages.delete(messageId);
+        element.classList.remove('selected');
+      } else {
+        selectedMessages.add(messageId);
+        element.classList.add('selected');
+      }
       
-      chatContainer.innerHTML = '';
+      updateSelectionInfo();
+    }
+
+    // Update selection info
+    function updateSelectionInfo() {
+      const count = selectedMessages.size;
+      selectionInfo.textContent = `${count} selected`;
       
-      if (messages.length === 0) {
-        chatContainer.innerHTML = `
-          <div class="empty-chat">
-            <p>No messages yet. Start the conversation!</p>
-          </div>
-        `;
-        isRendering = false;
+      if (count > 0) {
+        selectionMode.style.display = 'flex';
+      } else {
+        selectionMode.style.display = 'none';
+      }
+    }
+
+    // Delete selected messages
+    function deleteSelectedMessages() {
+      if (selectedMessages.size === 0) return;
+      
+      showConfirmationAlert(
+        "Delete selected messages?",
+        `This will delete ${selectedMessages.size} message(s) for you only.`,
+        async () => {
+          // Delete each selected message for current user
+          const promises = [];
+          selectedMessages.forEach(messageId => {
+            promises.push(deleteMessageForUser(messageId, currentUser.uid));
+          });
+          
+          try {
+            await Promise.all(promises);
+            selectedMessages.clear();
+            updateSelectionInfo();
+          } catch (error) {
+            console.error("Error deleting messages:", error);
+            showBeautifulAlert("Error", "Failed to delete some messages");
+          }
+        },
+        () => {}
+      );
+    }
+
+    // Initialize chat
+    async function initChat() {
+      if (isInitialized) return;
+      isInitialized = true;
+      
+      showLoading();
+      
+      // Get recipient from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const recipientId = urlParams.get('to');
+      if (!recipientId) {
+        hideLoading();
+        showBeautifulAlert("Error", "Recipient not specified");
         return;
       }
-      
-      messages.forEach(msg => {
-        // Skip if message is deleted for current user
-        if (msg.deleted && msg.deletedBy && msg.deletedBy.includes(currentUser.uid)) {
+
+      // Fetch recipient data
+      try {
+        const userDoc = await db.collection('users').doc(recipientId).get();
+        if (!userDoc.exists) {
+          hideLoading();
+          showBeautifulAlert("Error", "User not found");
           return;
         }
+        recipient = userDoc.data();
+        recipient.uid = userDoc.id;
         
-        const messageElement = document.createElement('div');
-        messageElement.className = `message ${msg.senderId === currentUser.uid ? 'sent' : 'received'}`;
-        messageElement.dataset.messageId = msg.id;
+        // Set chat ID
+        chatId = [currentUser.uid, recipient.uid].sort().join('_');
         
-        // Add reply tag if this message is a reply
-        if (msg.replyTo) {
-          const replyTag = document.createElement('div');
-          replyTag.className = `reply-tag ${msg.senderId === currentUser.uid ? 'sent' : ''}`;
-          const senderName = msg.replyTo.senderId === currentUser.uid ? 'You' : recipientName;
-          replyTag.innerHTML = `
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/>
-            </svg>
-            ${senderName}: ${msg.replyTo.text}
-          `;
-          messageElement.appendChild(replyTag);
-        }
+        // Update UI
+        recipientNameEl.textContent = recipient.email === ADMIN_EMAIL ? "BluePay Admin" : recipient.name;
+        updateOnlineStatus();
         
-        // Message content
-        const messageText = document.createElement('div');
-        messageText.className = 'message-text';
+        // Load messages
+        await loadMessages();
+        hideLoading();
         
-        if (msg.deleted) {
-          messageText.textContent = "This message was deleted";
-          messageText.className += ' deleted-message';
-        } else {
-          messageText.textContent = msg.text;
-        }
+        // Setup listeners
+        setupMessageListener();
+        setupTypingListener();
+        setupOnlineStatusListener();
         
-        messageElement.appendChild(messageText);
-        
-        // Message time and status
-        const messageTime = document.createElement('div');
-        messageTime.className = 'message-time';
-        
-        // Format time
-        let timeString = "";
-        if (msg.timestamp) {
-          const timestamp = msg.timestamp.toDate ? msg.timestamp.toDate() : new Date(msg.timestamp);
-          timeString = timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        }
-        messageTime.innerHTML = timeString;
-        
-        // Add status indicator for sent messages
-        if (msg.senderId === currentUser.uid) {
-          const statusIcon = document.createElement('span');
-          statusIcon.className = 'status-icon';
-          
-          // Check if message is read by recipient
-          if (msg.readBy && msg.readBy.includes(recipientId)) {
-            statusIcon.innerHTML = '✓✓'; // Double check for seen
-            statusIcon.style.color = '#07bc0c';
-          } else {
-            statusIcon.innerHTML = '✓'; // Single check for delivered
-          }
-          messageTime.appendChild(statusIcon);
-        }
-        
-        messageElement.appendChild(messageTime);
-        
-        chatContainer.appendChild(messageElement);
-      });
-      
-      // Scroll to bottom
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-      isRendering = false;
-    }
-
-    // Show beautiful alert
-    function showBeautifulAlert(title, message, buttonText = "OK", callback = null) {
-      alertTitle.textContent = title;
-      alertMessage.textContent = message;
-      alertBtn.textContent = buttonText;
-      beautifulAlert.style.display = 'block';
-      
-      if (callback) {
-        const originalCallback = alertBtn.onclick;
-        alertBtn.onclick = () => {
-          beautifulAlert.style.display = 'none';
-          callback();
-          if (originalCallback) {
-            alertBtn.onclick = originalCallback;
-          }
-        };
+        // Focus input
+        messageInput.focus();
+      } catch (error) {
+        console.error("Error initializing chat:", error);
+        hideLoading();
+        showBeautifulAlert("Error", "Failed to load chat");
       }
-    }
-
-    // Hide loading
-    function hideLoading() {
-      const loading = document.querySelector('.loading');
-      if (loading) {
-        loading.remove();
-      }
-    }
-
-    // Cleanup function
-    function cleanup() {
-      if (unsubscribeMessages) unsubscribeMessages();
-      if (unsubscribeTyping) unsubscribeTyping();
-      if (typingTimeout) clearTimeout(typingTimeout);
-      if (touchTimeout) clearTimeout(touchTimeout);
     }
 
     // Initialize the app
-    window.addEventListener('DOMContentLoaded', init);
+    function init() {
+      // Check if user is authenticated
+      auth.onAuthStateChanged(user => {
+        if (user) {
+          currentUser = user;
+          initChat();
+        } else {
+          // User is not signed in, redirect to login
+          hideLoading();
+          showBeautifulAlert("Authentication Required", "You need to be signed in to access this chat.", () => {
+            window.location.href = 'login.html';
+          });
+        }
+      });
+    }
+
+    // Event Listeners
+    sendButton.addEventListener('click', sendMessage);
+    
+    messageInput.addEventListener('input', () => {
+      // Auto-resize textarea
+      messageInput.style.height = '50px';
+      messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
+      
+      // Send typing indicator
+      if (messageInput.value.trim() && !isTyping) {
+        isTyping = true;
+        sendTypingIndicator(true);
+      }
+      
+      if (typingTimeout) clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(() => {
+        if (isTyping) {
+          isTyping = false;
+          sendTypingIndicator(false);
+        }
+      }, 1000);
+    });
+    
+    messageInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+    
+    backBtn.addEventListener('click', () => {
+      // Go back to friends list
+      window.location.href = 'friends.html';
+    });
+    
+    deleteSelected.addEventListener('click', deleteSelectedMessages);
+    cancelSelection.addEventListener('click', () => {
+      selectedMessages.clear();
+      updateSelectionInfo();
+      document.querySelectorAll('.message').forEach(el => {
+        el.classList.remove('selected');
+      });
+    });
+    
+    cancelReply.addEventListener('click', cancelReplyToMessage);
+    
+    // Delete modal event listeners
+    cancelDelete.addEventListener('click', () => {
+      deleteOptionsModal.style.display = 'none';
+    });
+    
+    confirmDelete.addEventListener('click', handleDeleteMessage);
+    
+    // Close modal when clicking outside
+    deleteOptionsModal.addEventListener('click', (e) => {
+      if (e.target === deleteOptionsModal) {
+        deleteOptionsModal.style.display = 'none';
+      }
+    });
+
+        // Initialize when DOM is loaded
+    document.addEventListener('DOMContentLoaded', init);
   </script>
 </body>
 </html>
