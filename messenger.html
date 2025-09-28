@@ -22,6 +22,8 @@
       --received-bg: #f1f3f4;
       --sent-bg: var(--blue-primary);
       --reaction-bg: rgba(0,0,0,0.7);
+      --green-seen: #07bc0c;
+      --typing-indicator: #999;
     }
 
     * {
@@ -91,6 +93,13 @@
       opacity: 0.9;
     }
 
+    .typing-indicator {
+      font-size: 0.85rem;
+      opacity: 0.9;
+      color: var(--typing-indicator);
+      display: none;
+    }
+
     /* Chat Container */
     .chat-container {
       flex: 1;
@@ -109,6 +118,7 @@
       border-radius: 18px;
       position: relative;
       animation: fadeIn 0.2s ease-out;
+      transition: transform 0.2s;
     }
 
     @keyframes fadeIn {
@@ -138,10 +148,24 @@
       font-size: 0.75rem;
       margin-top: 6px;
       opacity: 0.8;
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
 
     .sent .message-time {
       color: rgba(255,255,255,0.8);
+    }
+
+    .status-icon {
+      font-size: 0.75rem;
+      margin-left: 4px;
+    }
+
+    .seen-text {
+      font-size: 0.7rem;
+      margin-left: 4px;
+      color: var(--green-seen);
     }
 
     /* Deleted Message */
@@ -169,6 +193,24 @@
       gap: 4px;
     }
 
+    /* Reply Tag */
+    .reply-tag {
+      background: rgba(0,0,0,0.05);
+      padding: 4px 8px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      font-size: 0.85rem;
+      color: #555;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .reply-tag.sent {
+      background: rgba(255,255,255,0.2);
+      color: white;
+    }
+
     /* Input Area */
     .input-area {
       background: white;
@@ -193,6 +235,7 @@
       border-color: var(--blue-primary);
     }
 
+    /* WhatsApp-style Send Button */
     .send-btn {
       background: rgba(26, 115, 232, 0.1);
       color: var(--blue-primary);
@@ -205,6 +248,7 @@
       justify-content: center;
       cursor: pointer;
       transition: all 0.2s;
+      position: relative;
     }
 
     .send-btn.active {
@@ -215,12 +259,12 @@
     .send-icon {
       width: 24px;
       height: 24px;
-      background: url("image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%231a73e8' d='M2.01 21L23 12 2.01 3 2 10l15 2-15 2z'/%3E%3C/svg%3E") no-repeat center;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%231a73e8' d='M2.01 21L23 12 2.01 3 2 10l15 2-15 2z'/%3E%3C/svg%3E") no-repeat center;
       background-size: contain;
     }
 
     .send-btn.active .send-icon {
-      background: url("image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ffffff' d='M2.01 21L23 12 2.01 3 2 10l15 2-15 2z'/%3E%3C/svg%3E") no-repeat center;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ffffff' d='M2.01 21L23 12 2.01 3 2 10l15 2-15 2z'/%3E%3C/svg%3E") no-repeat center;
     }
 
     /* Context Menu */
@@ -461,6 +505,65 @@
       transform: scale(1.03);
       box-shadow: 0 5px 15px rgba(26, 115, 232, 0.4);
     }
+
+    /* Beautiful Alert */
+    .beautiful-alert {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+      z-index: 1000;
+      width: 90%;
+      max-width: 400px;
+      display: none;
+      text-align: center;
+    }
+
+    .beautiful-alert h3 {
+      color: var(--blue-primary);
+      margin-bottom: 16px;
+      font-size: 1.3rem;
+    }
+
+    .beautiful-alert p {
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .alert-btn {
+      background: linear-gradient(135deg, var(--blue-primary), var(--blue-dark));
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .alert-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    /* Swipe indicator */
+    .swipe-indicator {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      z-index: 150;
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -473,11 +576,19 @@
     </div>
   </div>
 
+  <!-- Beautiful Alert Modal -->
+  <div class="beautiful-alert" id="beautifulAlert" style="display: none;">
+    <h3 id="alertTitle">Alert</h3>
+    <p id="alertMessage">This is an alert message.</p>
+    <button class="alert-btn" id="alertBtn">OK</button>
+  </div>
+
   <div class="header">
     <button class="back-btn" id="backBtn">←</button>
     <div class="contact-info">
       <div class="contact-name" id="contactName">Loading...</div>
       <div class="contact-status" id="contactStatus">Online</div>
+      <div class="typing-indicator" id="typingIndicator">typing...</div>
     </div>
   </div>
 
@@ -519,7 +630,7 @@
   <div class="delete-dialog" id="deleteDialog">
     <h3>Delete Message</h3>
     <div class="delete-options">
-      <div class="delete-option" data-option="me">
+      <div class="delete-option selected" data-option="me">
         <input type="radio" name="deleteOption" id="deleteMe" checked>
         <label for="deleteMe">Delete for me</label>
       </div>
@@ -543,6 +654,9 @@
     <div class="emoji" data-emoji="😢">😢</div>
     <div class="emoji" data-emoji="😡">😡</div>
   </div>
+
+  <!-- Swipe Indicator -->
+  <div class="swipe-indicator" id="swipeIndicator">Swipe right to reply</div>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/12.2.1/firebase-app-compat.js"></script>
@@ -572,6 +686,8 @@
     let chatId = null;
     let messages = [];
     let activeMessage = null;
+    let isTyping = false;
+    let typingTimeout = null;
 
     // DOM Elements
     const chatContainer = document.getElementById('chatContainer');
@@ -591,6 +707,12 @@
     const deleteOptions = document.querySelectorAll('.delete-option');
     const authRequiredModal = document.getElementById('authRequiredModal');
     const goToLogin = document.getElementById('goToLogin');
+    const typingIndicator = document.getElementById('typingIndicator');
+    const swipeIndicator = document.getElementById('swipeIndicator');
+    const beautifulAlert = document.getElementById('beautifulAlert');
+    const alertTitle = document.getElementById('alertTitle');
+    const alertMessage = document.getElementById('alertMessage');
+    const alertBtn = document.getElementById('alertBtn');
 
     // Initialize
     function init() {
@@ -632,13 +754,20 @@
         
         // Set up real-time listener
         setupMessageListener();
+        
+        // Setup typing indicator
+        setupTypingIndicator();
       });
 
       // Event listeners
       sendBtn.addEventListener('click', sendMessage);
       messageInput.addEventListener('input', toggleSendButton);
       messageInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') sendMessage();
+             messageInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
       });
       
       backBtn.addEventListener('click', () => {
@@ -670,7 +799,6 @@
         option.addEventListener('click', () => {
           deleteOptions.forEach(opt => opt.classList.remove('selected'));
           option.classList.add('selected');
-          document.querySelector(`input[value="${option.dataset.option}"]`).checked = true;
         });
       });
       
@@ -685,6 +813,14 @@
       goToLogin.addEventListener('click', () => {
         window.location.href = "login.html";
       });
+      
+      // Alert button
+      alertBtn.addEventListener('click', () => {
+        beautifulAlert.style.display = 'none';
+      });
+      
+      // Setup swipe to reply
+      setupSwipeToReply();
     }
 
     // Load recipient info
@@ -733,106 +869,28 @@
           "Failed to load messages. Please check your connection and try again.",
           "Retry",
           () => {
-                        loadMessages();
+            loadMessages();
           }
         );
       }
-    }
-
-    // Set up real-time listener
-    function setupMessageListener() {
-      db.collection('chats').doc(chatId).collection('messages')
-        .orderBy('timestamp', 'asc')
-        .onSnapshot((snapshot) => {
-          snapshot.docChanges().forEach((change) => {
-            if (change.type === 'added') {
-              const newMessage = {id: change.doc.id, ...change.doc.data()};
-              // Prevent duplicates
-              if (!messages.some(msg => msg.id === newMessage.id)) {
-                messages.push(newMessage);
-                renderMessages();
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-              }
-            } else if (change.type === 'modified') {
-              const index = messages.findIndex(msg => msg.id === change.doc.id);
-              if (index !== -1) {
-                messages[index] = {id: change.doc.id, ...change.doc.data()};
-                renderMessages();
-              }
-            } else if (change.type === 'removed') {
-              messages = messages.filter(msg => msg.id !== change.doc.id);
-              renderMessages();
-            }
-          });
-        });
     }
 
     // Render messages
     function renderMessages() {
       chatContainer.innerHTML = '';
       
-      messages.forEach((message) => {
-        const messageElement = document.createElement('div');
-        messageElement.className = `message ${message.senderId === currentUser.uid ? 'sent' : 'received'}`;
-        messageElement.dataset.messageId = message.id;
-        
-        const time = new Date(message.timestamp?.seconds * 1000 || Date.now());
-        const timeString = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        
-        // Check if message is deleted
-        let messageContent = '';
-        if (message.deletedFor && 
-            (message.deletedFor.includes(currentUser.uid) || message.deletedFor.includes('everyone'))) {
-          messageContent = '<div class="message-text deleted-message">This message was deleted</div>';
-        } else {
-          messageContent = `<div class="message-text">${message.text}</div>`;
-        }
-        
-        // Build reactions HTML
-        let reactionsHTML = '';
-        if (message.reactions && Object.keys(message.reactions).length > 0) {
-          reactionsHTML = '<div class="reactions">';
-          Object.entries(message.reactions).forEach(([emoji, users]) => {
-            const userNames = users.map(uid => uid === currentUser.uid ? 'You' : (uid === recipientId ? recipientName : 'User')).join(', ');
-            reactionsHTML += `<div class="reaction" title="${userNames}">${emoji} ${users.length}</div>`;
-          });
-          reactionsHTML += '</div>';
-        }
-        
-        messageElement.innerHTML = `
-          ${messageContent}
-          <div class="message-time">${timeString}</div>
-          ${reactionsHTML}
+      if (messages.length === 0) {
+        chatContainer.innerHTML = `
+          <div class="empty-chat">
+            <h3>No messages yet</h3>
+            <p>Send a message to start the conversation!</p>
+          </div>
         `;
-        
-        // Add long press event
-        let pressTimer;
-        messageElement.addEventListener('touchstart', (e) => {
-          // Only show context menu for non-deleted messages
-          if (!message.deletedFor || !message.deletedFor.includes(currentUser.uid)) {
-            pressTimer = setTimeout(() => {
-              showContextMenu(e, message);
-            }, 500);
-          }
-        });
-        
-        messageElement.addEventListener('touchend', () => {
-          clearTimeout(pressTimer);
-        });
-        
-        messageElement.addEventListener('touchmove', () => {
-          clearTimeout(pressTimer);
-        });
-        
-        // For desktop
-        messageElement.addEventListener('contextmenu', (e) => {
-          e.preventDefault();
-          // Only show context menu for non-deleted messages
-          if (!message.deletedFor || !message.deletedFor.includes(currentUser.uid)) {
-            showContextMenu(e, message);
-          }
-        });
-        
+        return;
+      }
+      
+      messages.forEach(msg => {
+        const messageElement = createMessageElement(msg);
         chatContainer.appendChild(messageElement);
       });
       
@@ -840,81 +898,149 @@
       chatContainer.scrollTop = chatContainer.scrollHeight;
     }
 
-    // Show context menu
-    function showContextMenu(e, message) {
-      e.preventDefault();
-      activeMessage = message;
+    // Create message element
+    function createMessageElement(msg) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${msg.senderId === currentUser.uid ? 'sent' : 'received'}`;
+      messageDiv.dataset.messageId = msg.id;
       
-      // Position menu
-      const rect = e.target.getBoundingClientRect ? e.target.getBoundingClientRect() : e.currentTarget.getBoundingClientRect();
-      contextMenu.style.left = `${rect.left + window.scrollX}px`;
-      contextMenu.style.top = `${rect.bottom + window.scrollY}px`;
-      contextMenu.style.display = 'flex';
-    }
-
-    // Toggle send button
-    function toggleSendButton() {
-      if (messageInput.value.trim() !== '') {
-        sendBtn.classList.add('active');
-      } else {
-        sendBtn.classList.remove('active');
+      // Add reply tag if exists
+      if (msg.replyTo) {
+        const replyTag = document.createElement('div');
+        replyTag.className = `reply-tag ${msg.senderId === currentUser.uid ? 'sent' : ''}`;
+        replyTag.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/>
+          </svg>
+          <span>Replying to: ${msg.replyTo.text.substring(0, 30)}${msg.replyTo.text.length > 30 ? '...' : ''}</span>
+        `;
+        messageDiv.appendChild(replyTag);
       }
-    }
-
-    // Send message
-    async function sendMessage() {
-      const text = messageInput.value.trim();
-      if (!text) return;
       
-      // Clear input
-      messageInput.value = '';
-      sendBtn.classList.remove('active');
+      // Message text
+      const messageText = document.createElement('div');
+      messageText.className = 'message-text';
+      messageText.textContent = msg.deleted ? 'This message was deleted' : msg.text;
+      messageDiv.appendChild(messageText);
       
-      try {
-        const newMessage = {
-          text: text,
-          senderId: currentUser.uid,
-          recipientId: recipientId,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-          reactions: {},
-          deletedFor: []
-        };
+      // Message time and status
+      const messageTime = document.createElement('div');
+      messageTime.className = 'message-time';
+      
+      const timeText = document.createElement('span');
+      timeText.textContent = formatTime(msg.timestamp);
+      messageTime.appendChild(timeText);
+      
+      if (msg.senderId === currentUser.uid) {
+        const statusIcon = document.createElement('span');
+        statusIcon.className = 'status-icon';
         
-        // Add to Firestore
-        await db.collection('chats').doc(chatId).collection('messages').add(newMessage);
-      } catch (error) {
-        console.error("Error sending message:", error);
-        showBeautifulAlert(
-          "Message Failed",
-          "Unable to send your message. Please check your connection and try again.",
-          "OK"
-        );
+        if (msg.seenBy && msg.seenBy.includes(recipientId)) {
+          statusIcon.innerHTML = '✓✓';
+          statusIcon.style.color = 'var(--green-seen)';
+          
+          const seenText = document.createElement('span');
+          seenText.className = 'seen-text';
+          seenText.textContent = 'seen';
+          messageTime.appendChild(seenText);
+        } else if (msg.delivered) {
+          statusIcon.innerHTML = '✓✓';
+        } else {
+          statusIcon.innerHTML = '✓';
+        }
+        
+        messageTime.appendChild(statusIcon);
       }
+      
+      messageDiv.appendChild(messageTime);
+      
+      // Add reactions if any
+      if (msg.reactions && Object.keys(msg.reactions).length > 0) {
+        const reactionsDiv = document.createElement('div');
+        reactionsDiv.className = 'reactions';
+        
+        Object.entries(msg.reactions).forEach(([emoji, count]) => {
+          const reaction = document.createElement('div');
+          reaction.className = 'reaction';
+          reaction.innerHTML = `${emoji} ${count > 1 ? count : ''}`;
+          reactionsDiv.appendChild(reaction);
+        });
+        
+        messageDiv.appendChild(reactionsDiv);
+      }
+      
+      // Add long press event for context menu
+      let pressTimer;
+      messageDiv.addEventListener('mousedown', (e) => {
+        pressTimer = setTimeout(() => {
+          showContextMenu(e, msg);
+        }, 500);
+      });
+      
+      messageDiv.addEventListener('mouseup', () => {
+        clearTimeout(pressTimer);
+      });
+      
+      messageDiv.addEventListener('mouseleave', () => {
+        clearTimeout(pressTimer);
+      });
+      
+      // Touch events for mobile
+      messageDiv.addEventListener('touchstart', (e) => {
+        pressTimer = setTimeout(() => {
+          showContextMenu(e, msg);
+        }, 500);
+      });
+      
+      messageDiv.addEventListener('touchend', () => {
+        clearTimeout(pressTimer);
+      });
+      
+      return messageDiv;
+    }
+
+    // Format time
+    function formatTime(timestamp) {
+      if (!timestamp) return '';
+      const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    // Show context menu
+    function showContextMenu(e, msg) {
+      activeMessage = msg;
+      
+      // Position context menu
+      const x = e.clientX || (e.changedTouches ? e.changedTouches[0].clientX : 0);
+      const y = e.clientY || (e.changedTouches ? e.changedTouches[0].clientY : 0);
+      
+      contextMenu.style.left = `${x}px`;
+      contextMenu.style.top = `${y}px`;
+      contextMenu.style.display = 'flex';
     }
 
     // Copy message
     function copyMessage() {
       if (!activeMessage) return;
       
-      const text = activeMessage.text;
-      navigator.clipboard.writeText(text).then(() => {
-        // Show success feedback
-        const originalText = copyItem.innerHTML;
-        copyItem.innerHTML = '<svg class="context-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Copied!';
-        setTimeout(() => {
-          copyItem.innerHTML = originalText;
-          contextMenu.style.display = 'none';
-        }, 1000);
-      }).catch(err => {
-        console.error('Failed to copy: ', err);
-      });
+      navigator.clipboard.writeText(activeMessage.text)
+        .then(() => {
+          showBeautifulAlert("Copied!", "Message copied to clipboard", "OK");
+        })
+        .catch(err => {
+          console.error('Failed to copy: ', err);
+        });
+      
+      contextMenu.style.display = 'none';
     }
 
     // Show delete dialog
     function showDeleteDialog() {
-      contextMenu.style.display = 'none';
+      if (!activeMessage) return;
+      
       deleteDialog.style.display = 'block';
       deleteOverlay.style.display = 'block';
+      contextMenu.style.display = 'none';
     }
 
     // Hide delete dialog
@@ -924,168 +1050,266 @@
     }
 
     // Delete message
-    async function deleteMessage() {
+    function deleteMessage() {
       if (!activeMessage) return;
       
-      // Get selected option
-      const selectedOption = document.querySelector('input[name="deleteOption"]:checked').id;
-      const deleteForEveryone = selectedOption === 'deleteEveryone';
+      const selectedOption = document.querySelector('.delete-option.selected').dataset.option;
       
-      try {
-        const messageRef = db.collection('chats').doc(chatId).collection('messages').doc(activeMessage.id);
-        
-        if (deleteForEveryone) {
-          // Delete for everyone - add notification message
-          await messageRef.update({ 
-            deletedFor: ['everyone'],
-            deletedBy: currentUser.uid
-          });
-          
-          // Send notification message
-          const notificationMessage = {
-            text: deleteMessageNotification(currentUser.uid === activeMessage.senderId ? "You" : (activeMessage.senderId === recipientId ? recipientName : "User")),
-            senderId: currentUser.uid,
-            recipientId: recipientId,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            reactions: {},
-            deletedFor: [],
-            isNotification: true
-          };
-          
-          await db.collection('chats').doc(chatId).collection('messages').add(notificationMessage);
-        } else {
-          // Delete for me only
-          const currentDeletedFor = activeMessage.deletedFor || [];
-          currentDeletedFor.push(currentUser.uid);
-          await messageRef.update({ deletedFor: currentDeletedFor });
-        }
-        
-        hideDeleteDialog();
-      } catch (error) {
-        console.error("Error deleting message:", error);
-        showBeautifulAlert("Error", "Failed to delete message.", "OK");
+      // Update message in Firestore
+      const messageRef = db.collection('chats').doc(chatId).collection('messages').doc(activeMessage.id);
+      
+      if (selectedOption === 'everyone') {
+        // Delete for everyone
+        messageRef.update({
+          deleted: true,
+          deletedForEveryone: true,
+          deletedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      } else {
+        // Delete for me only
+        const deletedForField = `deletedFor.${currentUser.uid}`;
+        messageRef.update({
+          [deletedForField]: true,
+          deletedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
       }
-    }
-
-    // Generate delete notification message
-    function deleteMessageNotification(userName) {
-      return `${userName} deleted a message`;
+      
+      hideDeleteDialog();
+      contextMenu.style.display = 'none';
     }
 
     // Show emoji picker
-    function showEmojiPicker() {
-      contextMenu.style.display = 'none';
+    function showEmojiPicker(e) {
+      if (!activeMessage) return;
       
-      // Position emoji picker
-      const rect = contextMenu.getBoundingClientRect();
+      const rect = e.target.getBoundingClientRect();
       emojiPicker.style.left = `${rect.left}px`;
       emojiPicker.style.top = `${rect.bottom + 5}px`;
       emojiPicker.style.display = 'flex';
+      contextMenu.style.display = 'none';
     }
 
     // Add reaction
-    async function addReaction(emoji) {
+    function addReaction(emoji) {
       if (!activeMessage) return;
       
-      try {
-        const messageRef = db.collection('chats').doc(chatId).collection('messages').doc(activeMessage.id);
-        const reactions = activeMessage.reactions || {};
-        
-        if (!reactions[emoji]) {
-          reactions[emoji] = [];
-        }
-        
-        // Check if user already reacted
-        const userIndex = reactions[emoji].indexOf(currentUser.uid);
-        if (userIndex === -1) {
-          reactions[emoji].push(currentUser.uid);
-          
-          // Send notification message
-          const senderName = activeMessage.senderId === currentUser.uid ? "You" : (activeMessage.senderId === recipientId ? recipientName : "User");
-          const notificationMessage = {
-            text: `${senderName} reacted ${emoji} to your message`,
-            senderId: currentUser.uid,
-            recipientId: recipientId,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            reactions: {},
-            deletedFor: [],
-            isNotification: true
-          };
-          
-          await db.collection('chats').doc(chatId).collection('messages').add(notificationMessage);
-        } else {
-          reactions[emoji].splice(userIndex, 1);
-          if (reactions[emoji].length === 0) {
-            delete reactions[emoji];
-          }
-        }
-        
-        await messageRef.update({ reactions: reactions });
-        emojiPicker.style.display = 'none';
-      } catch (error) {
-        console.error("Error adding reaction:", error);
-        showBeautifulAlert("Error", "Failed to add reaction.", "OK");
-      }
+      const messageRef = db.collection('chats').doc(chatId).collection('messages').doc(activeMessage.id);
+      const reactionPath = `reactions.${emoji}`;
+      
+      // Update reaction count
+      messageRef.update({
+        [reactionPath]: firebase.firestore.FieldValue.increment(1)
+      });
+      
+      emojiPicker.style.display = 'none';
     }
 
-    // Beautiful Alert Function
-    function showBeautifulAlert(title, message, cancelText = "Cancel", confirmText = "OK", cancelCallback = null, confirmCallback = null) {
-      const overlay = document.createElement('div');
-      overlay.className = 'alert-overlay';
-      const alertDiv = document.createElement('div');
-      alertDiv.className = 'alert';
-      
-      if (cancelCallback && confirmCallback) {
-        // Two-button alert (for confirmation)
-        alertDiv.innerHTML = `
-          <h2>${title}</h2>
-          <p>${message}</p>
-          <div class="alert-buttons">
-            <button class="alert-button secondary">${cancelText}</button>
-            <button class="alert-button">${confirmText}</button>
-          </div>
-        `;
-        
-        const cancelBtn = alertDiv.querySelector('.secondary');
-        const confirmBtn = alertDiv.querySelector('.alert-button:not(.secondary)');
-        
-        cancelBtn.addEventListener('click', () => {
-          document.body.removeChild(overlay);
-          if (cancelCallback) cancelCallback();
-        });
-        
-        confirmBtn.addEventListener('click', () => {
-          document.body.removeChild(overlay);
-          if (confirmCallback) confirmCallback();
-        });
+    // Toggle send button
+    function toggleSendButton() {
+      if (messageInput.value.trim() !== '') {
+        sendBtn.classList.add('active');
       } else {
-        // Single-button alert
-        alertDiv.innerHTML = `
-          <h2>${title}</h2>
-          <p>${message}</p>
-          <button class="alert-button">${confirmText}</button>
-        `;
-        
-        const button = alertDiv.querySelector('.alert-button');
-        button.addEventListener('click', () => {
-          document.body.removeChild(overlay);
-          if (confirmCallback) confirmCallback();
-        });
+        sendBtn.classList.remove('active');
       }
       
-      overlay.appendChild(alertDiv);
-      document.body.appendChild(overlay);
+      // Send typing indicator
+      if (!isTyping) {
+        isTyping = true;
+        sendTypingIndicator(true);
+      }
       
-      overlay.addEventListener('click', (e) => {
-        if (e.target === overlay && !cancelCallback) {
-          document.body.removeChild(overlay);
-          if (confirmCallback) confirmCallback();
+      // Reset typing timeout
+      if (typingTimeout) {
+        clearTimeout(typingTimeout);
+      }
+      
+      typingTimeout = setTimeout(() => {
+        isTyping = false;
+        sendTypingIndicator(false);
+      }, 3000);
+    }
+
+    // Setup typing indicator
+    function setupTypingIndicator() {
+      // Listen for typing indicators from the other user
+      const typingRef = db.collection('chats').doc(chatId).collection('typing').doc(recipientId);
+      
+      typingRef.onSnapshot((doc) => {
+        if (doc.exists) {
+          const data = doc.data();
+          if (data.isTyping && data.timestamp.toDate() > new Date(Date.now() - 5000)) {
+            typingIndicator.style.display = 'block';
+          } else {
+            typingIndicator.style.display = 'none';
+          }
+        } else {
+          typingIndicator.style.display = 'none';
         }
       });
     }
 
-    // Initialize when page loads
-    window.addEventListener('DOMContentLoaded', init);
+    // Send typing indicator
+    function sendTypingIndicator(isTyping) {
+      const typingRef = db.collection('chats').doc(chatId).collection('typing').doc(currentUser.uid);
+      
+      if (isTyping) {
+        typingRef.set({
+          isTyping: true,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      } else {
+        typingRef.delete();
+      }
+    }
+
+    // Send message
+    async function sendMessage() {
+      const text = messageInput.value.trim();
+      if (!text) return;
+      
+      // Clear input and disable send button
+      messageInput.value = '';
+      sendBtn.classList.remove('active');
+      
+      // Create message object
+      const newMessage = {
+        text: text,
+        senderId: currentUser.uid,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        delivered: false,
+        seenBy: []
+      };
+      
+      // Add to Firestore
+      try {
+        const docRef = await db.collection('chats').doc(chatId).collection('messages').add(newMessage);
+        
+        // Mark as delivered immediately for sender
+        await docRef.update({ delivered: true });
+        
+        // Scroll to bottom
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      } catch (error) {
+        console.error("Error sending message:", error);
+        showBeautifulAlert(
+          "Send Error",
+          "Failed to send message. Please check your connection and try again.",
+          "Retry",
+          () => {
+            messageInput.value = text;
+            toggleSendButton();
+          }
+        );
+      }
+    }
+
+    // Setup message listener
+    function setupMessageListener() {
+      const messagesRef = db.collection('chats').doc(chatId).collection('messages').orderBy('timestamp', 'asc');
+      
+      messagesRef.onSnapshot((snapshot) => {
+        snapshot.docChanges().forEach((change) => {
+          if (change.type === "added") {
+            const msg = { id: change.doc.id, ...change.doc.data() };
+            
+            // Check if message is for current user
+            if (msg.senderId !== currentUser.uid) {
+              // Mark as delivered
+              change.doc.ref.update({ delivered: true });
+              
+              // Mark as seen after a short delay
+              setTimeout(() => {
+                change.doc.ref.update({
+                  seenBy: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
+                });
+              }, 1000);
+            }
+            
+            messages.push(msg);
+          }
+          if (change.type === "modified") {
+            const index = messages.findIndex(m => m.id === change.doc.id);
+            if (index !== -1) {
+              messages[index] = { id: change.doc.id, ...change.doc.data() };
+            }
+          }
+        });
+        
+        renderMessages();
+      });
+    }
+
+    // Setup swipe to reply
+    function setupSwipeToReply() {
+      let startX = 0;
+      let currentX = 0;
+      let isSwiping = false;
+      
+      chatContainer.addEventListener('touchstart', (e) => {
+        if (e.target.classList.contains('message')) {
+          startX = e.touches[0].clientX;
+          isSwiping = true;
+          swipeIndicator.style.display = 'block';
+        }
+      });
+      
+      chatContainer.addEventListener('touchmove', (e) => {
+        if (!isSwiping) return;
+        
+        currentX = e.touches[0].clientX;
+        const diff = currentX - startX;
+        
+        if (diff > 50) {
+          // Swipe right - reply
+          const messageElement = e.target.closest('.message');
+          if (messageElement) {
+            const messageId = messageElement.dataset.messageId;
+            const message = messages.find(m => m.id === messageId);
+            
+            if (message) {
+              // Set reply context
+              messageInput.value = `> ${message.text}\n\n`;
+              messageInput.focus();
+              toggleSendButton();
+            }
+          }
+          
+          isSwiping = false;
+          swipeIndicator.style.display = 'none';
+        } else if (diff < -20) {
+          // Swipe left - hide indicator
+          swipeIndicator.style.display = 'none';
+        }
+      });
+      
+      chatContainer.addEventListener('touchend', () => {
+        isSwiping = false;
+        swipeIndicator.style.display = 'none';
+      });
+    }
+
+    // Show beautiful alert
+    function showBeautifulAlert(title, message, buttonText, callback) {
+      alertTitle.textContent = title;
+      alertMessage.textContent = message;
+      alertBtn.textContent = buttonText;
+      
+      if (callback) {
+        alertBtn.onclick = () => {
+          beautifulAlert.style.display = 'none';
+          callback();
+        };
+      } else {
+        alertBtn.onclick = () => {
+          beautifulAlert.style.display = 'none';
+        };
+      }
+      
+      beautifulAlert.style.display = 'block';
+    }
+
+    // Initialize the app
+    init();
   </script>
 </body>
 </html>
