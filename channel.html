@@ -20,6 +20,7 @@
       --border-gray: #e0e6ed;
       --bg-light: #fafbff;
       --received-bg: #f1f3f4;
+      --channel-bg: #f8fafc;
     }
 
     * {
@@ -76,17 +77,55 @@
 
     .channel-info {
       flex: 1;
+      text-align: center;
     }
 
     .channel-name {
-      font-weight: 700;
-      font-size: 1.2rem;
-      margin-bottom: 4px;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 1.5rem;
+      font-style: italic;
+      letter-spacing: -0.5px;
+      background: linear-gradient(to right, #ffffff, #e0f0ff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
     }
 
     .followers-count {
       font-size: 0.85rem;
       opacity: 0.9;
+      margin-top: 4px;
+    }
+
+    /* Channel Info Banner */
+    .channel-banner {
+      background: white;
+      padding: 20px;
+      text-align: center;
+      border-bottom: 1px solid var(--border-gray);
+    }
+
+    .channel-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--blue-primary), var(--blue-dark));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 2rem;
+      margin: 0 auto 16px;
+      box-shadow: 0 4px 12px rgba(26, 115, 232, 0.2);
+    }
+
+    .channel-description {
+      color: #5f6368;
+      line-height: 1.5;
+      max-width: 500px;
+      margin: 0 auto;
     }
 
     /* Messages Container */
@@ -96,14 +135,18 @@
       padding: 20px 16px;
       display: flex;
       flex-direction: column;
+      background-color: var(--channel-bg);
       gap: 16px;
     }
 
-    /* Message Bubbles */
+    /* Message Bubbles - Centered like WhatsApp Channel */
     .message {
       max-width: 85%;
-      padding: 12px 16px;
+      margin: 0 auto;
+      padding: 14px 18px;
+      background: white;
       border-radius: 18px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
       position: relative;
       animation: fadeIn 0.2s ease-out;
     }
@@ -113,13 +156,20 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    .admin-message {
-      background: var(--blue-primary);
-      color: white;
-      align-self: flex-start;
-      border-bottom-left-radius: 4px;
+    .message-text {
+      word-wrap: break-word;
+      line-height: 1.4;
+      font-size: 1.05rem;
     }
 
+    .message-time {
+      font-size: 0.75rem;
+      color: #777;
+      margin-top: 8px;
+      text-align: right;
+    }
+
+    /* System Message */
     .system-message {
       background: var(--received-bg);
       color: #5f6368;
@@ -128,27 +178,13 @@
       padding: 8px 12px;
       border-radius: 12px;
       max-width: fit-content;
-    }
-
-    .message-text {
-      word-wrap: break-word;
-      line-height: 1.4;
-    }
-
-    .message-time {
-      font-size: 0.75rem;
-      margin-top: 6px;
-      opacity: 0.8;
-    }
-
-    .admin-message .message-time {
-      color: rgba(255,255,255,0.8);
+      margin: 0 auto;
     }
 
     /* Input Area (Admin Only) */
     .input-area {
       background: white;
-      padding: 12px 16px;
+      padding: 16px;
       display: flex;
       gap: 12px;
       border-top: 1px solid var(--border-gray);
@@ -157,41 +193,62 @@
 
     .message-input {
       flex: 1;
-      padding: 14px 16px;
+      padding: 14px 20px;
       border: 1px solid var(--border-gray);
       border-radius: 24px;
       font-size: 1rem;
       outline: none;
       transition: border-color 0.2s;
+      background: var(--bg-light);
+      color: #999;
+      cursor: not-allowed;
     }
 
-    .message-input:focus {
-      border-color: var(--blue-primary);
+    .message-input::placeholder {
+      color: #999;
+    }
+
+    .admin-input .message-input {
+      background: white;
+      color: var(--text-gray);
+      cursor: text;
+    }
+
+    .admin-input .message-input::placeholder {
+      color: var(--text-gray);
     }
 
     .send-btn {
-      background: linear-gradient(135deg, var(--blue-primary), var(--blue-dark));
+      background: var(--border-gray);
       color: white;
       border: none;
-      width: 48px;
-      height: 48px;
+      width: 52px;
+      height: 52px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .admin-input .send-btn {
+      background: linear-gradient(135deg, var(--blue-primary), var(--blue-dark));
       cursor: pointer;
+      opacity: 1;
       box-shadow: 0 2px 6px rgba(26, 115, 232, 0.3);
     }
 
-    .send-btn:hover {
+    .admin-input .send-btn:hover {
       transform: scale(1.05);
     }
 
+    .admin-input .send-btn:active {
+      transform: scale(0.95);
+    }
+
     .send-icon {
-      width: 24px;
-      height: 24px;
-      background: url("image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ffffff' d='M2.01 21L23 12 2.01 3 2 10l15 2-15 2z'/%3E%3C/svg%3E") no-repeat center;
-      background-size: contain;
+      font-size: 22px;
     }
 
     /* Hidden for regular users */
@@ -206,9 +263,14 @@
       color: #777;
     }
 
+    .empty-channel h3 {
+      color: var(--blue-primary);
+      margin-bottom: 12px;
+    }
+
     .empty-channel p {
-      margin-top: 16px;
-      font-size: 1.1rem;
+      max-width: 300px;
+      line-height: 1.5;
     }
 
     /* Loading */
@@ -299,21 +361,26 @@
     </div>
   </div>
 
+  <div class="channel-banner">
+    <div class="channel-avatar">B</div>
+    <p class="channel-description">Official announcements and updates from BluePay. Only admins can send messages in this channel.</p>
+  </div>
+
   <div class="messages-container" id="messagesContainer">
     <!-- Messages will be loaded here -->
   </div>
 
   <div class="input-area hidden" id="inputArea">
-    <input type="text" class="message-input" id="messageInput" placeholder="Type a message..." autocomplete="off">
+    <input type="text" class="message-input" id="messageInput" placeholder="Only admins can send messages" autocomplete="off" readonly>
     <button class="send-btn" id="sendBtn">
-      <div class="send-icon"></div>
+      <span class="send-icon">➤</span>
     </button>
   </div>
 
   <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/12.2.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/12.2.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
   <script>
     // 🔑 Firebase Config
@@ -330,6 +397,7 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
     const ADMIN_EMAIL = "bluepay863@gmail.com";
+    const BASE_FOLLOWERS = 500; // Base followers count
 
     let currentUser = null;
     let messages = [];
@@ -359,6 +427,9 @@
         // Show input only for admin
         if (currentUser.email === ADMIN_EMAIL) {
           inputArea.classList.remove('hidden');
+          inputArea.classList.add('admin-input');
+          messageInput.removeAttribute('readonly');
+          messageInput.placeholder = "Write a channel announcement...";
           sendBtn.addEventListener('click', sendMessage);
           messageInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') sendMessage();
@@ -373,10 +444,11 @@
     // Load channel data
     async function loadChannelData() {
       try {
-        // Load followers count
+        // Load followers count (base 500 + real users)
         const usersSnapshot = await db.collection('users').get();
-        const followerCount = usersSnapshot.size;
-        followersCount.textContent = `${followerCount} followers`;
+        const realUserCount = usersSnapshot.size;
+        const totalFollowers = BASE_FOLLOWERS + realUserCount;
+        followersCount.textContent = `${totalFollowers} followers`;
 
         // Load messages
         const messagesSnapshot = await db.collection('channel').orderBy('timestamp', 'asc').get();
@@ -410,30 +482,19 @@
       db.collection('channel')
         .orderBy('timestamp', 'asc')
         .onSnapshot((snapshot) => {
-          snapshot.docChanges().forEach((change) => {
-            if (change.type === 'added') {
-              const newMessage = change.doc.data();
-              messages.push(newMessage);
-              renderMessages();
-            }
+          messages = [];
+          snapshot.forEach(doc => {
+            messages.push(doc.data());
           });
+          renderMessages();
         });
 
-      // Listen for new users (for system messages)
+      // Listen for new users (to update follower count)
       db.collection('users')
         .onSnapshot((snapshot) => {
-          snapshot.docChanges().forEach((change) => {
-            if (change.type === 'added') {
-              const newUser = change.doc.data();
-              if (currentUser.email === ADMIN_EMAIL) {
-                // Admin sees system message with email
-                addSystemMessage(`New user joined: ${newUser.email}`);
-              } else {
-                // Regular users see generic message
-                addSystemMessage("New user has joined the channel");
-              }
-            }
-          });
+          const realUserCount = snapshot.size;
+          const totalFollowers = BASE_FOLLOWERS + realUserCount;
+          followersCount.textContent = `${totalFollowers} followers`;
         });
     }
 
@@ -441,15 +502,34 @@
     function renderMessages() {
       messagesContainer.innerHTML = '';
       
+      if (messages.length === 0) {
+        messagesContainer.innerHTML = `
+          <div class="empty-channel">
+            <h3>No announcements yet</h3>
+            <p>Stay tuned for official updates from BluePay!</p>
+          </div>
+        `;
+        return;
+      }
+      
       messages.forEach(message => {
         const messageElement = document.createElement('div');
-        messageElement.className = 'message admin-message';
+        messageElement.className = 'message';
         
+        // Format timestamp
         const time = new Date(message.timestamp?.seconds * 1000 || Date.now());
         const timeString = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         
+        // Escape HTML to prevent XSS
+        const escapedText = message.text
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "<")
+          .replace(/>/g, ">")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+        
         messageElement.innerHTML = `
-          <div class="message-text">${message.text}</div>
+          <div class="message-text">${escapedText}</div>
           <div class="message-time">${timeString}</div>
         `;
         
@@ -457,15 +537,6 @@
       });
       
       // Scroll to bottom
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    }
-
-    // Add system message
-    function addSystemMessage(text) {
-      const systemMsg = document.createElement('div');
-      systemMsg.className = 'message system-message';
-      systemMsg.textContent = text;
-      messagesContainer.appendChild(systemMsg);
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
 
