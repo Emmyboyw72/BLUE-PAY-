@@ -188,10 +188,30 @@
       font-size: 0.7rem;
       margin-top: 4px;
       opacity: 0.8;
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
 
     .sent .message-time {
       color: rgba(255, 255, 255, 0.8);
+    }
+
+    .read-receipt {
+      display: flex;
+      align-items: center;
+      font-size: 0.7rem;
+      margin-left: 4px;
+    }
+
+    .read-receipt-icon {
+      margin-right: 2px;
+    }
+
+    .seen-text {
+      color: var(--green-seen);
+      font-size: 0.65rem;
+      margin-left: 2px;
     }
 
     .message-actions {
@@ -613,6 +633,83 @@
       transform: scale(1.02);
       box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3);
     }
+
+    /* Long press indicator */
+    .long-press-indicator {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.3);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 500;
+      display: none;
+    }
+
+    .long-press-content {
+      background: white;
+      border-radius: 20px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .long-press-content p {
+      margin-bottom: 15px;
+      color: var(--text-gray);
+    }
+
+    .long-press-actions {
+      display: flex;
+      gap: 15px;
+    }
+
+    .long-press-btn {
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+
+    .long-press-btn.reply {
+      background: var(--blue-light);
+      color: var(--blue-primary);
+    }
+
+    .long-press-btn.delete {
+      background: rgba(234, 67, 53, 0.1);
+      color: var(--red-badge);
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .chat-header {
+        padding: 12px 16px;
+      }
+      
+      .recipient-name {
+        font-size: 1.1rem;
+      }
+      
+      .message {
+        max-width: 85%;
+      }
+      
+      .message-input {
+        height: 44px;
+      }
+      
+      .send-button {
+        width: 42px;
+        height: 42px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -677,689 +774,547 @@
     </div>
   </div>
 
+  <!-- Long Press Indicator -->
+  <div class="long-press-indicator" id="longPressIndicator">
+    <div class="long-press-content">
+      <p>Select an action</p>
+      <div class="long-press-actions">
+        <button class="long-press-btn reply" id="longPressReply">Reply</button>
+        <button class="long-press-btn delete" id="longPressDelete">Delete</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/12.2.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/12.2.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore-compat.js"></script>
 
   <script>
-    // 🔑 Firebase Config
-    const firebaseConfig = {
-      apiKey: "AIzaSyCusJ_rFuOWwy1QFZedtyJr7igCeiIg3a0",
-      authDomain: "my-sign-up-and-login.firebaseapp.com",
-      projectId: "my-sign-up-and-login",
-      storageBucket: "my-sign-up-and-login.firebasestorage.app",
-      messagingSenderId: "1009128333653",
-      appId: "1:1009128333653:web:15c1609ca3fbd4720c0fdc"
-    };
+  // 🔑 Firebase Config
+  const firebaseConfig = {
+    apiKey: "AIzaSyCusJ_rFuOWwy1QFZedtyJr7igCeiIg3a0",
+    authDomain: "my-sign-up-and-login.firebaseapp.com",
+    projectId: "my-sign-up-and-login",
+    storageBucket: "my-sign-up-and-login.firebasestorage.app",
+    messagingSenderId: "1009128333653",
+    appId: "1:1009128333653:web:15c1609ca3fbd4720c0fdc"
+  };
 
-    // Initialize Firebase
-    const app = firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-    const ADMIN_EMAIL = "bluepay863@gmail.com";
-
-    let currentUser = null;
-    let recipient = null;
-    let chatId = null;
-    let messages = [];
-    let selectedMessages = new Set();
-    let isTyping = false;
-    let typingTimeout = null;
-    let isInitialized = false;
-    let replyToMessage = null;
-    let messageToDelete = null;
-    let isOwnMessage = false;
-
-    // DOM Elements
-    const chatContainer = document.getElementById('chatContainer');
-    const messageInput = document.getElementById('messageInput');
-    const sendButton = document.getElementById('sendButton');
-    const backBtn = document.getElementById('backBtn');
-    const recipientNameEl = document.getElementById('recipientName');
-    const statusIndicator = document.getElementById('statusIndicator');
-    const statusText = document.getElementById('statusText');
-    const selectionMode = document.getElementById('selectionMode');
-    const selectionInfo = document.getElementById('selectionInfo');
-    const deleteSelected = document.getElementById('deleteSelected');
-    const cancelSelection = document.getElementById('cancelSelection');
-    const replyingTo = document.getElementById('replyingTo');
-    const replyingToText = document.getElementById('replyingToText');
-    const cancelReply = document.getElementById('cancelReply');
-    const deleteOptionsModal = document.getElementById('deleteOptionsModal');
-    const deleteForMeRadio = document.getElementById('deleteForMe');
-    const deleteForEveryoneRadio = document.getElementById('deleteForEveryone');
-    const cancelDelete = document.getElementById('cancelDelete');
-    const confirmDelete = document.getElementById('confirmDelete');
-
-    // Show loading screen
-    function showLoading() {
-      if (document.getElementById('loadingScreen')) return;
-      document.body.insertAdjacentHTML('beforeend', `
-        <div class="loading-screen" id="loadingScreen">
-          <div class="loader"></div>
-          <div>Loading chat...</div>
-        </div>
-      `);
-    }
-
-    // Hide loading screen
-    function hideLoading() {
-      const el = document.getElementById('loadingScreen');
-      if (el) el.remove();
-    }
-
-    // Show alert
-    function showBeautifulAlert(title, message, callback = null) {
-      // Remove existing alert if any
-      const existingOverlay = document.querySelector('.alert-overlay');
-      if (existingOverlay) existingOverlay.remove();
-      
-      const overlay = document.createElement('div');
-      overlay.className = 'alert-overlay';
-      const alertDiv = document.createElement('div');
-      alertDiv.className = 'alert';
-      alertDiv.innerHTML = `
-        <h2>${title}</h2>
-        <p>${message}</p>
-        <button class="alert-button">${callback ? "OK" : "Close"}</button>
-      `;
-      overlay.appendChild(alertDiv);
-      document.body.appendChild(overlay);
-
-      const button = alertDiv.querySelector('.alert-button');
-      button.addEventListener('click', () => {
-        document.body.removeChild(overlay);
-        if (callback) callback();
-      });
-      
-      overlay.addEventListener('click', (e) => {
-        if (e.target === overlay) {
-          document.body.removeChild(overlay);
-          if (callback) callback();
-        }
-      });
-    }
-
-    // Show confirmation alert
-    function showConfirmationAlert(title, message, onConfirm, onCancel) {
-      const existingOverlay = document.querySelector('.alert-overlay');
-      if (existingOverlay) existingOverlay.remove();
-      
-            const overlay = document.createElement('div');
-      overlay.className = 'alert-overlay';
-      const alertDiv = document.createElement('div');
-      alertDiv.className = 'alert';
-      alertDiv.innerHTML = `
-        <h2>${title}</h2>
-        <p>${message}</p>
-        <div class="alert-buttons">
-          <button class="alert-button secondary">Cancel</button>
-          <button class="alert-button">Confirm</button>
-        </div>
-      `;
-      overlay.appendChild(alertDiv);
-      document.body.appendChild(overlay);
-
-      const confirmBtn = alertDiv.querySelector('.alert-button:last-child');
-      const cancelBtn = alertDiv.querySelector('.alert-button:first-child');
-      
-      confirmBtn.addEventListener('click', () => {
-        document.body.removeChild(overlay);
-        if (onConfirm) onConfirm();
-      });
-      
-      cancelBtn.addEventListener('click', () => {
-        document.body.removeChild(overlay);
-        if (onCancel) onCancel();
-      });
-      
-      overlay.addEventListener('click', (e) => {
-        if (e.target === overlay) {
-          document.body.removeChild(overlay);
-          if (onCancel) onCancel();
-        }
-      });
-    }
-
-    // Update online status
-    function updateOnlineStatus() {
-      if (!recipient) return;
-      
-      // In a real app, you would check the user's online status
-      // For this demo, we'll simulate online status
-      const isOnline = Math.random() > 0.3; // 70% chance of being online
-      
-      if (isOnline) {
-        statusIndicator.className = 'status-indicator online';
-        statusText.textContent = 'Online';
-      } else {
-        statusIndicator.className = 'status-indicator offline';
-        statusText.textContent = 'Offline';
-      }
-    }
-
-    // Setup online status listener
-    function setupOnlineStatusListener() {
-      // In a real app, you would listen to the user's presence
-      // For this demo, we'll update every 30 seconds
-      setInterval(updateOnlineStatus, 30000);
-    }
-
-    // Load messages
-    async function loadMessages() {
-      try {
-        const messagesSnap = await db.collection('chats').doc(chatId).collection('messages')
-          .orderBy('timestamp', 'asc')
-          .get();
-        
-        messages = [];
-        messagesSnap.forEach(doc => {
-          messages.push({
-            id: doc.id,
-            ...doc.data()
-          });
-        });
-        
-        renderMessages();
-      } catch (error) {
-        console.error("Error loading messages:", error);
-        showBeautifulAlert("Error", "Failed to load messages");
-      }
-    }
-
-    // Render messages
-    function renderMessages() {
-      chatContainer.innerHTML = '';
-      
-      if (messages.length === 0) {
-        chatContainer.innerHTML = `
-          <div class="empty-chat">
-            <h3>No messages yet</h3>
-            <p>Send a message to start the conversation!</p>
-          </div>
-        `;
+  // Initialize Firebase
+  const app = firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+  
+  // DOM Elements
+  const chatContainer = document.getElementById('chatContainer');
+  const messageInput = document.getElementById('messageInput');
+  const sendButton = document.getElementById('sendButton');
+  const replyingTo = document.getElementById('replyingTo');
+  const replyingToText = document.getElementById('replyingToText');
+  const cancelReply = document.getElementById('cancelReply');
+  const recipientName = document.getElementById('recipientName');
+  const statusIndicator = document.getElementById('statusIndicator');
+  const statusText = document.getElementById('statusText');
+  const backBtn = document.getElementById('backBtn');
+  const deleteOptionsModal = document.getElementById('deleteOptionsModal');
+  const confirmDelete = document.getElementById('confirmDelete');
+  const cancelDelete = document.getElementById('cancelDelete');
+  const longPressIndicator = document.getElementById('longPressIndicator');
+  const longPressReply = document.getElementById('longPressReply');
+  const longPressDelete = document.getElementById('longPressDelete');
+  const selectionMode = document.getElementById('selectionMode');
+  const selectionInfo = document.getElementById('selectionInfo');
+  const deleteSelected = document.getElementById('deleteSelected');
+  const cancelSelection = document.getElementById('cancelSelection');
+  
+  // State variables
+  let currentUser = null;
+  let recipient = null;
+  let chatId = null;
+  let replyToMessage = null;
+  let selectedMessages = [];
+  let longPressTimer = null;
+  let currentLongPressMessage = null;
+  let typingIndicator = null;
+  let isTyping = false;
+  let typingTimeout = null;
+  
+  // Initialize the chat
+  async function initChat() {
+    showLoading();
+    
+    try {
+      // Get current user
+      currentUser = auth.currentUser;
+      if (!currentUser) {
+        window.location.href = 'login.html';
         return;
       }
       
-      messages.forEach(msg => {
-        const isSent = msg.senderId === currentUser.uid;
-        const isRead = msg.readBy && msg.readBy.includes(recipient.uid);
-        const time = formatTime(msg.timestamp);
-        const isDeleted = msg.deletedFor && 
-          (msg.deletedFor.includes(currentUser.uid) || msg.deletedFor.includes('everyone'));
-        
-        const messageEl = document.createElement('div');
-        messageEl.className = `message ${isSent ? 'sent' : 'received'} ${isDeleted ? 'deleted' : ''}`;
-        messageEl.dataset.messageId = msg.id;
-        messageEl.dataset.senderId = msg.senderId;
-        
-        let messageContent = '';
-        if (isDeleted) {
-          messageContent = '<div class="message-text">This message was deleted</div>';
-        } else {
-          // Handle reply preview
-          let replyPreview = '';
-          if (msg.replyTo) {
-            const repliedMsg = messages.find(m => m.id === msg.replyTo.messageId);
-            if (repliedMsg && !repliedMsg.deletedFor) {
-              const replyAuthor = repliedMsg.senderId === currentUser.uid ? 
-                'You' : 
-                (recipient.uid === repliedMsg.senderId ? recipientNameEl.textContent : 'Unknown');
-              replyPreview = `
-                <div class="reply-preview ${isSent ? 'sent' : 'received'}">
-                  <span class="reply-author">${replyAuthor}:</span> 
-                  ${repliedMsg.text}
-                </div>
-              `;
-            }
-          }
-          
-          messageContent = `
-            ${replyPreview}
-            <div class="message-text">${msg.text}</div>
-          `;
-        }
-        
-        messageEl.innerHTML = `
-          ${messageContent}
-          <div class="message-time">${time}${isSent && isRead && !isDeleted ? ' ✓✓' : ''}</div>
-          ${!isDeleted ? `
-            <div class="message-actions">
-              <div class="action-item" data-action="reply">
-                <span class="action-icon">↩️</span> Reply
-              </div>
-              <div class="action-item" data-action="delete">
-                <span class="action-icon">🗑️</span> Delete
-              </div>
-            </div>
-          ` : ''}
-        `;
-        
-        // Add event listeners for actions
-        const actions = messageEl.querySelectorAll('.action-item');
-        actions.forEach(action => {
-          action.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const actionType = action.dataset.action;
-            if (actionType === 'reply') {
-              setReplyToMessage(msg);
-            } else if (actionType === 'delete') {
-              // Show delete options modal
-              messageToDelete = msg.id;
-              isOwnMessage = msg.senderId === currentUser.uid;
-              
-              // Update modal based on message ownership
-              if (isOwnMessage) {
-                deleteForEveryoneRadio.disabled = false;
-                deleteForEveryoneRadio.parentElement.style.opacity = '1';
-                deleteForEveryoneRadio.parentElement.style.pointerEvents = 'auto';
-              } else {
-                deleteForEveryoneRadio.disabled = true;
-                deleteForEveryoneRadio.parentElement.style.opacity = '0.5';
-                deleteForEveryoneRadio.parentElement.style.pointerEvents = 'none';
-                deleteForMeRadio.checked = true;
-              }
-              
-              deleteOptionsModal.style.display = 'flex';
-            }
-          });
-        });
-        
-        // Add selection handler
-        messageEl.addEventListener('click', (e) => {
-          if (selectionMode.style.display === 'flex') {
-            toggleMessageSelection(msg.id, messageEl);
-          }
-        });
-        
-        // Add long press for mobile
-        let pressTimer;
-        messageEl.addEventListener('touchstart', (e) => {
-          pressTimer = setTimeout(() => {
-            if (selectionMode.style.display !== 'flex') {
-              // Show actions on long press
-              const actions = messageEl.querySelector('.message-actions');
-              if (actions) {
-                actions.style.display = 'block';
-                setTimeout(() => {
-                  actions.style.display = 'none';
-                }, 3000);
-              }
-            } else {
-              toggleMessageSelection(msg.id, messageEl);
-            }
-          }, 500);
-        });
-        
-        messageEl.addEventListener('touchend', () => {
-          clearTimeout(pressTimer);
-        });
-        
-        messageEl.addEventListener('touchmove', () => {
-          clearTimeout(pressTimer);
-        });
-        
-        chatContainer.appendChild(messageEl);
-      });
-      
-      // Scroll to bottom
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
-
-    // Format timestamp
-    function formatTime(timestamp) {
-      if (!timestamp) return "";
-      const date = new Date(timestamp.seconds ? timestamp.seconds * 1000 : timestamp);
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    }
-
-    // Set reply to message
-    function setReplyToMessage(message) {
-      replyToMessage = message;
-      replyingToText.textContent = message.text.length > 30 ? 
-        message.text.substring(0, 30) + '...' : 
-        message.text;
-      replyingTo.style.display = 'block';
-      messageInput.focus();
-    }
-
-    // Cancel reply
-    function cancelReplyToMessage() {
-      replyToMessage = null;
-      replyingTo.style.display = 'none';
-    }
-
-    // Handle sending message
-    async function sendMessage() {
-      const text = messageInput.value.trim();
-      if (!text) return;
-      
-      try {
-        const newMessage = {
-          text: text,
-          senderId: currentUser.uid,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-          readBy: []
-        };
-        
-        // Add reply reference if replying
-        if (replyToMessage) {
-          newMessage.replyTo = {
-            messageId: replyToMessage.id,
-            senderId: replyToMessage.senderId,
-            text: replyToMessage.text
-          };
-          cancelReplyToMessage();
-        }
-        
-        await db.collection('chats').doc(chatId).collection('messages').add(newMessage);
-        messageInput.value = '';
-        messageInput.style.height = '50px';
-        
-        // Scroll to bottom
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-      } catch (error) {
-        console.error("Error sending message:", error);
-        showBeautifulAlert("Error", "Failed to send message");
-      }
-    }
-
-    // Handle delete message based on selected option
-    function handleDeleteMessage() {
-      const deleteForEveryone = deleteForEveryoneRadio.checked;
-      
-      if (deleteForEveryone) {
-        // Delete for everyone
-        deleteMessageForEveryone(messageToDelete);
-      } else {
-        // Delete for me only
-        deleteMessageForUser(messageToDelete, currentUser.uid);
-      }
-      
-      // Close modal
-      deleteOptionsModal.style.display = 'none';
-    }
-
-    // Delete message for current user only
-    async function deleteMessageForUser(messageId, userId) {
-      try {
-        // Update the message to mark as deleted for this user
-        await db.collection('chats').doc(chatId).collection('messages').doc(messageId).update({
-          deletedFor: firebase.firestore.FieldValue.arrayUnion(userId)
-        });
-      } catch (error) {
-        console.error("Error deleting message:", error);
-        showBeautifulAlert("Error", "Failed to delete message");
-      }
-    }
-
-    // Delete message for everyone
-    async function deleteMessageForEveryone(messageId) {
-      try {
-        // Mark as deleted for everyone
-        await db.collection('chats').doc(chatId).collection('messages').doc(messageId).update({
-          deletedFor: ['everyone']
-        });
-      } catch (error) {
-        console.error("Error deleting message:", error);
-        showBeautifulAlert("Error", "Failed to delete message");
-      }
-    }
-
-    // Setup message listener
-    function setupMessageListener() {
-      db.collection('chats').doc(chatId).collection('messages')
-        .orderBy('timestamp', 'asc')
-        .onSnapshot(snapshot => {
-          snapshot.docChanges().forEach(change => {
-            if (change.type === 'added') {
-              const newMsg = {
-                id: change.doc.id,
-                ...change.doc.data()
-              };
-              
-              // Mark as read if it's from the recipient
-              if (newMsg.senderId === recipient.uid) {
-                markMessageAsRead(newMsg.id);
-              }
-              
-              messages.push(newMsg);
-            }
-            else if (change.type === 'modified') {
-              const index = messages.findIndex(m => m.id === change.doc.id);
-              if (index !== -1) {
-                messages[index] = {
-                  id: change.doc.id,
-                  ...change.doc.data()
-                };
-              }
-            }
-            else if (change.type === 'removed') {
-              const index = messages.findIndex(m => m.id === change.doc.id);
-              if (index !== -1) {
-                messages.splice(index, 1);
-              }
-            }
-          });
-          
-          renderMessages();
-        });
-    }
-
-    // Mark message as read
-    async function markMessageAsRead(messageId) {
-      try {
-        await db.collection('chats').doc(chatId).collection('messages').doc(messageId).update({
-          readBy: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
-        });
-      } catch (error) {
-        console.error("Error marking message as read:", error);
-      }
-    }
-
-    // Setup typing listener
-    function setupTypingListener() {
-      // Listen for typing indicators
-      db.collection('chats').doc(chatId).collection('typing').doc(recipient.uid)
-        .onSnapshot(doc => {
-          if (doc.exists) {
-            const data = doc.data();
-            if (data.isTyping) {
-              showTypingIndicator();
-            } else {
-              hideTypingIndicator();
-            }
-          } else {
-            hideTypingIndicator();
-          }
-        });
-    }
-
-    // Show typing indicator
-    function showTypingIndicator() {
-      // Remove existing typing indicator
-      const existing = document.querySelector('.typing-indicator');
-      if (existing) existing.remove();
-      
-      // Create new typing indicator
-      const indicator = document.createElement('div');
-      indicator.className = 'typing-indicator';
-      indicator.innerHTML = `
-        <span>${recipient.email === ADMIN_EMAIL ? "BluePay Admin" : recipient.name}</span>
-        <div class="typing-dots">
-          <div class="typing-dot"></div>
-          <div class="typing-dot"></div>
-          <div class="typing-dot"></div>
-        </div>
-      `;
-      
-      chatContainer.appendChild(indicator);
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
-
-    // Hide typing indicator
-    function hideTypingIndicator() {
-      const existing = document.querySelector('.typing-indicator');
-      if (existing) existing.remove();
-    }
-
-    // Send typing indicator
-    async function sendTypingIndicator(isTyping) {
-      try {
-        await db.collection('chats').doc(chatId).collection('typing').doc(currentUser.uid).set({
-          isTyping: isTyping,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-      } catch (error) {
-        console.error("Error sending typing indicator:", error);
-      }
-    }
-
-    // Toggle message selection
-    function toggleMessageSelection(messageId, element) {
-      if (selectedMessages.has(messageId)) {
-        selectedMessages.delete(messageId);
-        element.classList.remove('selected');
-      } else {
-        selectedMessages.add(messageId);
-        element.classList.add('selected');
-      }
-      
-      updateSelectionInfo();
-    }
-
-    // Update selection info
-    function updateSelectionInfo() {
-      const count = selectedMessages.size;
-      selectionInfo.textContent = `${count} selected`;
-      
-      if (count > 0) {
-        selectionMode.style.display = 'flex';
-      } else {
-        selectionMode.style.display = 'none';
-      }
-    }
-
-    // Delete selected messages
-    function deleteSelectedMessages() {
-      if (selectedMessages.size === 0) return;
-      
-      showConfirmationAlert(
-        "Delete selected messages?",
-        `This will delete ${selectedMessages.size} message(s) for you only.`,
-        async () => {
-          // Delete each selected message for current user
-          const promises = [];
-          selectedMessages.forEach(messageId => {
-            promises.push(deleteMessageForUser(messageId, currentUser.uid));
-          });
-          
-          try {
-            await Promise.all(promises);
-            selectedMessages.clear();
-            updateSelectionInfo();
-          } catch (error) {
-            console.error("Error deleting messages:", error);
-            showBeautifulAlert("Error", "Failed to delete some messages");
-          }
-        },
-        () => {}
-      );
-    }
-
-    // Initialize chat
-    async function initChat() {
-      if (isInitialized) return;
-      isInitialized = true;
-      
-      showLoading();
-      
-      // Get recipient from URL
+      // Get recipient from URL parameter
       const urlParams = new URLSearchParams(window.location.search);
       const recipientId = urlParams.get('to');
       if (!recipientId) {
-        hideLoading();
-        showBeautifulAlert("Error", "Recipient not specified");
+        showBeautifulAlert("Error", "Recipient not specified", "OK", () => {
+          window.location.href = 'friends.html';
+        });
         return;
       }
-
-      // Fetch recipient data
-      try {
-        const userDoc = await db.collection('users').doc(recipientId).get();
-        if (!userDoc.exists) {
-          hideLoading();
-          showBeautifulAlert("Error", "User not found");
-          return;
-        }
-        recipient = userDoc.data();
-        recipient.uid = userDoc.id;
-        
-        // Set chat ID
-        chatId = [currentUser.uid, recipient.uid].sort().join('_');
-        
-        // Update UI
-        recipientNameEl.textContent = recipient.email === ADMIN_EMAIL ? "BluePay Admin" : recipient.name;
-        updateOnlineStatus();
-        
-        // Load messages
-        await loadMessages();
-        hideLoading();
-        
-        // Setup listeners
-        setupMessageListener();
-        setupTypingListener();
-        setupOnlineStatusListener();
-        
-        // Focus input
-        messageInput.focus();
-      } catch (error) {
-        console.error("Error initializing chat:", error);
-        hideLoading();
-        showBeautifulAlert("Error", "Failed to load chat");
+      
+      // Get recipient data
+      const recipientDoc = await db.collection('users').doc(recipientId).get();
+      if (!recipientDoc.exists) {
+        showBeautifulAlert("Error", "Recipient not found", "OK", () => {
+          window.location.href = 'friends.html';
+        });
+        return;
       }
-    }
-
-    // Initialize the app
-    function init() {
-      // Check if user is authenticated
-      auth.onAuthStateChanged(user => {
-        if (user) {
-          currentUser = user;
-          initChat();
-        } else {
-          // User is not signed in, redirect to login
-          hideLoading();
-          showBeautifulAlert("Authentication Required", "You need to be signed in to access this chat.", () => {
-            window.location.href = 'login.html';
-          });
-        }
+      
+      recipient = recipientDoc.data();
+      recipient.uid = recipientId;
+      
+      // Set chat header info
+      recipientName.textContent = recipient.email === "bluepay863@gmail.com" ? "BluePay Admin" : recipient.name;
+      statusIndicator.classList.remove('offline');
+      statusIndicator.classList.add('online');
+      statusText.textContent = "Online";
+      
+      // Create chat ID (sorted to ensure consistency)
+      chatId = [currentUser.uid, recipientId].sort().join('_');
+      
+      // Set up real-time listener for messages
+      setupMessageListener();
+      
+      // Set up typing indicator listener
+      setupTypingListener();
+      
+      // Set up event listeners
+      setupEventListeners();
+      
+      // Mark messages as read
+      await markMessagesAsRead();
+      
+      // Hide loading after a short delay for better UX
+      setTimeout(hideLoading, 500);
+    } catch (error) {
+      console.error("Error initializing chat:", error);
+      hideLoading();
+      showBeautifulAlert("Error", "Failed to load chat. Please try again.", "OK", () => {
+        window.location.href = 'friends.html';
       });
     }
-
-    // Event Listeners
-    sendButton.addEventListener('click', sendMessage);
+  }
+  
+  // Set up real-time message listener
+  function setupMessageListener() {
+    const messagesRef = db.collection('chats').doc(chatId).collection('messages')
+      .orderBy('timestamp', 'asc');
     
-    messageInput.addEventListener('input', () => {
-      // Auto-resize textarea
-      messageInput.style.height = '50px';
-      messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
-      
-      // Send typing indicator
-      if (messageInput.value.trim() && !isTyping) {
-        isTyping = true;
-        sendTypingIndicator(true);
-      }
-      
-      if (typingTimeout) clearTimeout(typingTimeout);
-      typingTimeout = setTimeout(() => {
-        if (isTyping) {
-          isTyping = false;
-          sendTypingIndicator(false);
+    messagesRef.onSnapshot((snapshot) => {
+      // Clear container and re-render all messages
+      // In a production app, you'd want to handle incremental updates
+      renderMessages(snapshot.docs);
+    });
+  }
+  
+  // Set up typing indicator listener
+  function setupTypingListener() {
+    const typingRef = db.collection('chats').doc(chatId).collection('typing').doc(recipient.uid);
+    
+    typingRef.onSnapshot((doc) => {
+      if (doc.exists) {
+        const data = doc.data();
+        if (data.isTyping && data.timestamp) {
+          // Check if typing is still recent (within last 5 seconds)
+          const now = new Date().getTime();
+          const typingTime = data.timestamp.toDate().getTime();
+          if (now - typingTime < 5000) {
+            showTypingIndicator();
+          } else {
+            hideTypingIndicator();
+          }
+        } else {
+          hideTypingIndicator();
         }
-      }, 1000);
+      } else {
+        hideTypingIndicator();
+      }
+    });
+  }
+  
+  // Render messages from snapshot
+  function renderMessages(docs) {
+    chatContainer.innerHTML = '';
+    
+    if (docs.length === 0) {
+      chatContainer.innerHTML = `
+        <div class="empty-chat">
+          <h3>No messages yet</h3>
+          <p>Send a message to start the conversation!</p>
+        </div>
+      `;
+      return;
+    }
+    
+    docs.forEach(doc => {
+      const msg = doc.data();
+      msg.id = doc.id;
+      const messageElement = createMessageElement(msg);
+      chatContainer.appendChild(messageElement);
     });
     
+    // Scroll to bottom
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  }
+  
+  // Create a message element
+  function createMessageElement(msg) {
+    const isSent = msg.senderId === currentUser.uid;
+    const isDeleted = msg.deleted;
+    const messageClass = isSent ? 'sent' : 'received';
+    const messageElement = document.createElement('div');
+    messageElement.className = `message ${messageClass} ${isDeleted ? 'deleted' : ''}`;
+    messageElement.dataset.messageId = msg.id;
+    
+    // Add reply preview if this message is a reply
+    if (msg.replyTo) {
+      // We need to fetch the replied message
+      const replyPreview = document.createElement('div');
+      replyPreview.className = `reply-preview ${isSent ? 'sent' : ''}`;
+      
+      // In a real app, you'd fetch the actual message
+      // For this demo, we'll show a placeholder
+      const replyAuthor = msg.replyToSender === currentUser.uid ? 'You' : 
+        (recipient.email === "bluepay863@gmail.com" ? "BluePay Admin" : recipient.name);
+      
+      replyPreview.innerHTML = `
+        <span class="reply-author">${replyAuthor}:</span>
+        ${msg.replyToText || 'Message content'}
+      `;
+      messageElement.appendChild(replyPreview);
+    }
+    
+    // Message text
+    const messageText = document.createElement('div');
+    messageText.className = 'message-text';
+    messageText.textContent = isDeleted ? 'This message was deleted' : msg.text;
+    messageElement.appendChild(messageText);
+    
+    // Message time and read receipt
+    const timeElement = document.createElement('div');
+    timeElement.className = 'message-time';
+    timeElement.textContent = formatTime(msg.timestamp);
+    
+    if (isSent && msg.readBy && msg.readBy.includes(recipient.uid)) {
+      timeElement.innerHTML += `
+        <span class="read-receipt">
+          <span class="read-receipt-icon">✓✓</span>
+          <span class="seen-text">seen</span>
+        </span>
+      `;
+    }
+    
+    messageElement.appendChild(timeElement);
+    
+    // Message actions (reply/delete)
+    const actionsElement = document.createElement('div');
+    actionsElement.className = 'message-actions';
+    actionsElement.innerHTML = `
+      <div class="action-item" data-action="reply">
+        <span class="action-icon">↩️</span> Reply
+      </div>
+      <div class="action-item" data-action="delete">
+        <span class="action-icon">🗑️</span> Delete
+      </div>
+    `;
+    messageElement.appendChild(actionsElement);
+    
+    // Add event listeners for actions
+    actionsElement.querySelector('[data-action="reply"]').addEventListener('click', (e) => {
+      e.stopPropagation();
+      setReplyTo(msg);
+    });
+    
+    actionsElement.querySelector('[data-action="delete"]').addEventListener('click', (e) => {
+      e.stopPropagation();
+      showDeleteOptions(msg);
+    });
+    
+    // Add long press functionality
+    messageElement.addEventListener('touchstart', (e) => {
+      currentLongPressMessage = msg;
+      longPressTimer = setTimeout(() => {
+        showLongPressIndicator(msg);
+      }, 500);
+    });
+    
+    messageElement.addEventListener('touchend', () => {
+      clearTimeout(longPressTimer);
+    });
+    
+    messageElement.addEventListener('touchmove', () => {
+      clearTimeout(longPressTimer);
+    });
+    
+    // For desktop
+    messageElement.addEventListener('mousedown', (e) => {
+      if (e.button === 0) { // Left mouse button
+        currentLongPressMessage = msg;
+        longPressTimer = setTimeout(() => {
+          showLongPressIndicator(msg);
+        }, 500);
+      }
+    });
+    
+    messageElement.addEventListener('mouseup', () => {
+      clearTimeout(longPressTimer);
+    });
+    
+    messageElement.addEventListener('mouseleave', () => {
+      clearTimeout(longPressTimer);
+    });
+    
+    // Selection mode
+    messageElement.addEventListener('click', () => {
+      if (selectionMode.style.display === 'flex') {
+        toggleMessageSelection(msg.id);
+      }
+    });
+    
+    return messageElement;
+  }
+  
+  // Format time for display
+  function formatTime(timestamp) {
+    if (!timestamp) return "";
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+  
+  // Set reply to a message
+  function setReplyTo(message) {
+    replyToMessage = message;
+    replyingTo.style.display = 'block';
+    replyingToText.textContent = message.text.length > 30 ? 
+      message.text.substring(0, 30) + '...' : 
+      message.text;
+    messageInput.focus();
+  }
+  
+  // Cancel reply
+  function cancelReplyTo() {
+    replyToMessage = null;
+    replyingTo.style.display = 'none';
+    messageInput.focus();
+  }
+  
+  // Send a new message
+  async function sendMessage() {
+    const text = messageInput.value.trim();
+    if (!text) return;
+    
+    // Hide typing indicator if it exists
+    hideTypingIndicator();
+    
+    // Create new message object
+    const newMessage = {
+      text: text,
+      senderId: currentUser.uid,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      readBy: [],
+      replyTo: replyToMessage ? replyToMessage.id : null,
+      replyToSender: replyToMessage ? replyToMessage.senderId : null,
+      replyToText: replyToMessage ? replyToMessage.text : null
+    };
+    
+    try {
+      // Add message to Firestore
+      await db.collection('chats').doc(chatId).collection('messages').add(newMessage);
+      
+      // Clear input and cancel reply
+      messageInput.value = '';
+      cancelReplyTo();
+      
+      // Mark as read for sender
+      // In a real app, you'd handle this differently
+    } catch (error) {
+      console.error("Error sending message:", error);
+      showBeautifulAlert("Error", "Failed to send message. Please try again.");
+    }
+  }
+  
+  // Show typing indicator
+  function showTypingIndicator() {
+    // Only show if we're not the one typing
+    if (currentUser.uid === recipient.uid) return;
+    
+    // Remove existing typing indicator if any
+    if (typingIndicator && typingIndicator.parentNode) {
+      typingIndicator.remove();
+    }
+    
+    typingIndicator = document.createElement('div');
+    typingIndicator.className = 'typing-indicator';
+    typingIndicator.innerHTML = `
+      <span>Typing</span>
+      <div class="typing-dots">
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+      </div>
+    `;
+    chatContainer.appendChild(typingIndicator);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  }
+  
+  // Hide typing indicator
+  function hideTypingIndicator() {
+    if (typingIndicator && typingIndicator.parentNode) {
+      typingIndicator.remove();
+      typingIndicator = null;
+    }
+  }
+  
+  // Mark messages as read
+  async function markMessagesAsRead() {
+    try {
+      const messagesRef = db.collection('chats').doc(chatId).collection('messages');
+      const unreadMessages = await messagesRef
+        .where('senderId', '==', recipient.uid)
+        .where('readBy', 'not-in', [[currentUser.uid]])
+        .get();
+      
+      const batch = db.batch();
+      unreadMessages.forEach(doc => {
+        batch.update(doc.ref, {
+          readBy: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
+        });
+      });
+      
+      await batch.commit();
+    } catch (error) {
+      console.error("Error marking messages as read:", error);
+    }
+  }
+  
+  // Show delete options modal
+  function showDeleteOptions(message) {
+    currentLongPressMessage = message;
+    deleteOptionsModal.style.display = 'flex';
+  }
+  
+  // Confirm deletion
+  async function confirmDeletion() {
+    const deleteForEveryone = document.getElementById('deleteForEveryone').checked;
+    
+    try {
+      if (deleteForEveryone) {
+        // In a real app, you'd need security rules to allow this
+        await db.collection('chats').doc(chatId).collection('messages').doc(currentLongPressMessage.id).update({
+          deleted: true,
+          deletedForEveryone: true
+        });
+      } else {
+        // Mark as deleted only for current user
+        // In a real app, you'd have a different approach
+        await db.collection('chats').doc(chatId).collection('messages').doc(currentLongPressMessage.id).update({
+          deleted: true
+        });
+      }
+      
+      deleteOptionsModal.style.display = 'none';
+    } catch (error) {
+      console.error("Error deleting message:", error);
+      showBeautifulAlert("Error", "Failed to delete message. Please try again.");
+      deleteOptionsModal.style.display = 'none';
+    }
+  }
+  
+  // Show long press indicator
+  function showLongPressIndicator(message) {
+    currentLongPressMessage = message;
+    longPressIndicator.style.display = 'flex';
+  }
+  
+  // Handle long press reply
+  function handleLongPressReply() {
+    setReplyTo(currentLongPressMessage);
+    longPressIndicator.style.display = 'none';
+  }
+  
+  // Handle long press delete
+  function handleLongPressDelete() {
+    showDeleteOptions(currentLongPressMessage);
+    longPressIndicator.style.display = 'none';
+  }
+  
+  // Toggle message selection
+  function toggleMessageSelection(messageId) {
+    const index = selectedMessages.indexOf(messageId);
+    if (index === -1) {
+      selectedMessages.push(messageId);
+    } else {
+      selectedMessages.splice(index, 1);
+    }
+    
+    updateSelectionUI();
+  }
+  
+  // Update selection UI
+  function updateSelectionUI() {
+    // Update selection info
+    selectionInfo.textContent = `${selectedMessages.length} selected`;
+    
+    // Update message selection visuals
+    document.querySelectorAll('.message').forEach(msgEl => {
+      const msgId = msgEl.dataset.messageId;
+      if (selectedMessages.includes(msgId)) {
+        msgEl.classList.add('selected');
+      } else {
+        msgEl.classList.remove('selected');
+      }
+    });
+    
+    // Show/hide selection mode
+    if (selectedMessages.length > 0) {
+      selectionMode.style.display = 'flex';
+    } else {
+      selectionMode.style.display = 'none';
+    }
+  }
+  
+  // Delete selected messages
+  async function deleteSelectedMessages() {
+    try {
+      const batch = db.batch();
+      selectedMessages.forEach(msgId => {
+        const msgRef = db.collection('chats').doc(chatId).collection('messages').doc(msgId);
+        batch.update(msgRef, { deleted: true });
+      });
+      
+      await batch.commit();
+      
+      selectedMessages = [];
+      updateSelectionUI();
+    } catch (error) {
+      console.error("Error deleting selected messages:", error);
+      showBeautifulAlert("Error", "Failed to delete messages. Please try again.");
+    }
+  }
+  
+  // Cancel selection mode
+  function cancelSelectionMode() {
+    selectedMessages = [];
+    updateSelectionUI();
+  }
+  
+  // Setup event listeners
+  function setupEventListeners() {
+    // Send message on button click
+    sendButton.addEventListener('click', sendMessage);
+    
+    // Send message on Enter (without Shift)
     messageInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
@@ -1367,38 +1322,119 @@
       }
     });
     
-    backBtn.addEventListener('click', () => {
-      // Go back to friends list
-      window.location.href = 'friends.html';
+    // Send typing indicator when user is typing
+    messageInput.addEventListener('input', () => {
+      if (!isTyping) {
+        isTyping = true;
+        sendTypingIndicator(true);
+      }
+      
+      // Reset typing timeout
+      if (typingTimeout) {
+        clearTimeout(typingTimeout);
+      }
+      
+      typingTimeout = setTimeout(() => {
+        isTyping = false;
+        sendTypingIndicator(false);
+      }, 3000);
     });
     
-    deleteSelected.addEventListener('click', deleteSelectedMessages);
-    cancelSelection.addEventListener('click', () => {
-      selectedMessages.clear();
-      updateSelectionInfo();
-      document.querySelectorAll('.message').forEach(el => {
-        el.classList.remove('selected');
-      });
-    });
+    // Cancel reply
+    cancelReply.addEventListener('click', cancelReplyTo);
     
-    cancelReply.addEventListener('click', cancelReplyToMessage);
-    
-    // Delete modal event listeners
+    // Delete options
+    confirmDelete.addEventListener('click', confirmDeletion);
     cancelDelete.addEventListener('click', () => {
       deleteOptionsModal.style.display = 'none';
     });
     
-    confirmDelete.addEventListener('click', handleDeleteMessage);
+    // Long press actions
+    longPressReply.addEventListener('click', handleLongPressReply);
+    longPressDelete.addEventListener('click', handleLongPressDelete);
     
-    // Close modal when clicking outside
+    // Selection mode
+    deleteSelected.addEventListener('click', deleteSelectedMessages);
+    cancelSelection.addEventListener('click', cancelSelectionMode);
+    
+    // Navigation
+    backBtn.addEventListener('click', () => {
+      window.location.href = 'friends.html';
+    });
+    
+    // Click outside long press indicator to close
+    longPressIndicator.addEventListener('click', (e) => {
+      if (e.target === longPressIndicator) {
+        longPressIndicator.style.display = 'none';
+      }
+    });
+    
+    // Click outside delete modal to close
     deleteOptionsModal.addEventListener('click', (e) => {
       if (e.target === deleteOptionsModal) {
         deleteOptionsModal.style.display = 'none';
       }
     });
+  }
+  
+  // Send typing indicator to Firestore
+  async function sendTypingIndicator(isTyping) {
+    try {
+      await db.collection('chats').doc(chatId).collection('typing').doc(currentUser.uid).set({
+        isTyping: isTyping,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    } catch (error) {
+      console.error("Error sending typing indicator:", error);
+    }
+  }
+  
+  // Show loading screen
+  function showLoading() {
+    document.body.insertAdjacentHTML('beforeend', `
+      <div class="loading-screen" id="loadingScreen">
+        <div class="loader"></div>
+        <div>Loading chat...</div>
+      </div>
+    `);
+  }
+  
+  // Hide loading screen
+  function hideLoading() {
+    const el = document.getElementById('loadingScreen');
+    if (el) el.remove();
+  }
+  
+  // Show beautiful alert
+  function showBeautifulAlert(title, message, buttonText = "OK", callback = null) {
+    const overlay = document.createElement('div');
+    overlay.className = 'alert-overlay';
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'alert';
+    alertDiv.innerHTML = `
+      <h2>${title}</h2>
+      <p>${message}</p>
+      <button class="alert-button">${buttonText}</button>
+    `;
+    overlay.appendChild(alertDiv);
+    document.body.appendChild(overlay);
 
-        // Initialize when DOM is loaded
-    document.addEventListener('DOMContentLoaded', init);
-  </script>
+        const button = alertDiv.querySelector('.alert-button');
+    button.addEventListener('click', () => {
+      document.body.removeChild(overlay);
+      if (callback) callback();
+    });
+    
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        document.body.removeChild(overlay);
+        if (callback) callback();
+      }
+    });
+  }
+  
+  // Initialize the chat when the page loads
+  window.addEventListener('DOMContentLoaded', initChat);
+</script>
 </body>
 </html>
