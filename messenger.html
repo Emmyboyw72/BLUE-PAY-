@@ -755,40 +755,40 @@
       <h3>Delete Message</h3>
       <div class="delete-option">
         <input type="radio" id="deleteForMe" name="deleteOption" checked>
-        <label for="deleteForMe">
-          Delete for me
-          <span class="delete-option-description">Only you will see this message removed</span>
-        </label>
-      </div>
-      <div class="delete-option">
-        <input type="radio" id="deleteForEveryone" name="deleteOption">
-        <label for="deleteForEveryone">
-          Delete for everyone
-          <span class="delete-option-description">Both you and the recipient will see this message removed</span>
-        </label>
-      </div>
-      <div class="delete-options-actions">
-        <button class="delete-options-btn cancel" id="cancelDelete">Cancel</button>
-        <button class="delete-options-btn delete" id="confirmDelete">Delete</button>
-      </div>
+             <label for="deleteForMe">
+        Delete for me
+        <span class="delete-option-description">Only you will see this message removed</span>
+      </label>
+    </div>
+    <div class="delete-option">
+      <input type="radio" id="deleteForEveryone" name="deleteOption">
+      <label for="deleteForEveryone">
+        Delete for everyone
+        <span class="delete-option-description">Both you and the recipient will see this message removed</span>
+      </label>
+    </div>
+    <div class="delete-options-actions">
+      <button class="delete-options-btn cancel" id="cancelDelete">Cancel</button>
+      <button class="delete-options-btn delete" id="confirmDelete">Delete</button>
     </div>
   </div>
+</div>
 
-  <!-- Long Press Indicator -->
-  <div class="long-press-indicator" id="longPressIndicator">
-    <div class="long-press-content">
-      <p>Select an action</p>
-      <div class="long-press-actions">
-        <button class="long-press-btn reply" id="longPressReply">Reply</button>
-        <button class="long-press-btn delete" id="longPressDelete">Delete</button>
-      </div>
+<!-- Long Press Indicator -->
+<div class="long-press-indicator" id="longPressIndicator">
+  <div class="long-press-content">
+    <p>Select an action</p>
+    <div class="long-press-actions">
+      <button class="long-press-btn reply" id="longPressReply">Reply</button>
+      <button class="long-press-btn delete" id="longPressDelete">Delete</button>
     </div>
   </div>
+</div>
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/12.2.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/12.2.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore-compat.js"></script>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/12.2.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.2.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore-compat.js"></script>
 
 <script>
   // 🔑 Firebase Config
@@ -848,7 +848,6 @@
     auth.onAuthStateChanged(async (user) => {
       if (!user) {
         hideLoading();
-        // Instead of redirecting immediately, show a friendly message
         showBeautifulAlert("Not Signed In", "You need to be signed in to send messages.", "Go to Login", () => {
           window.location.href = 'login.html';
         });
@@ -1021,17 +1020,24 @@
     
     messageElement.appendChild(timeElement);
     
-    // Message actions (reply/delete)
+    // Message actions (reply/delete) - ONLY show delete for own messages
     const actionsElement = document.createElement('div');
     actionsElement.className = 'message-actions';
     actionsElement.innerHTML = `
       <div class="action-item" data-action="reply">
         <span class="action-icon">↩️</span> Reply
       </div>
-      <div class="action-item" data-action="delete">
-        <span class="action-icon">🗑️</span> Delete
-      </div>
     `;
+    
+    // Only add delete option for own messages
+    if (isSent) {
+      actionsElement.innerHTML += `
+        <div class="action-item" data-action="delete">
+          <span class="action-icon">🗑️</span> Delete
+        </div>
+      `;
+    }
+    
     messageElement.appendChild(actionsElement);
     
     // Add event listeners for actions
@@ -1040,10 +1046,14 @@
       setReplyTo(msg);
     });
     
-    actionsElement.querySelector('[data-action="delete"]').addEventListener('click', (e) => {
-      e.stopPropagation();
-      showDeleteOptions(msg);
-    });
+    // Only add delete listener for own messages
+    const deleteAction = actionsElement.querySelector('[data-action="delete"]');
+    if (deleteAction) {
+      deleteAction.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showDeleteOptions(msg);
+      });
+    }
     
     // Add long press functionality
     messageElement.addEventListener('touchstart', (e) => {
@@ -1079,9 +1089,9 @@
       clearTimeout(longPressTimer);
     });
     
-    // Selection mode
+    // Selection mode - ONLY allow selection of own messages
     messageElement.addEventListener('click', () => {
-      if (selectionMode.style.display === 'flex') {
+      if (selectionMode.style.display === 'flex' && msg.senderId === currentUser.uid) {
         toggleMessageSelection(msg.id);
       }
     });
@@ -1203,21 +1213,36 @@
   
   // Show delete options modal
   function showDeleteOptions(message) {
+    // Only allow deletion of own messages
+    if (message.senderId !== currentUser.uid) {
+      showBeautifulAlert("Permission Denied", "You can only delete your own messages.");
+      return;
+    }
+    
     currentLongPressMessage = message;
     deleteOptionsModal.style.display = 'flex';
   }
   
   // Confirm deletion
   async function confirmDeletion() {
+    // Only allow deletion of own messages
+    if (currentLongPressMessage.senderId !== currentUser.uid) {
+      showBeautifulAlert("Permission Denied", "You can only delete your own messages.");
+      deleteOptionsModal.style.display = 'none';
+      return;
+    }
+    
     const deleteForEveryone = document.getElementById('deleteForEveryone').checked;
     
     try {
       if (deleteForEveryone) {
+        // Only allow deleting own messages for everyone
         await db.collection('chats').doc(chatId).collection('messages').doc(currentLongPressMessage.id).update({
           deleted: true,
           deletedForEveryone: true
         });
       } else {
+        // Mark as deleted only for current user
         await db.collection('chats').doc(chatId).collection('messages').doc(currentLongPressMessage.id).update({
           deleted: true
         });
@@ -1234,6 +1259,14 @@
   // Show long press indicator
   function showLongPressIndicator(message) {
     currentLongPressMessage = message;
+    
+    // Only show delete option for own messages
+    if (message.senderId === currentUser.uid) {
+      longPressDelete.style.display = 'inline-block';
+    } else {
+      longPressDelete.style.display = 'none';
+    }
+    
     longPressIndicator.style.display = 'flex';
   }
   
@@ -1245,12 +1278,23 @@
   
   // Handle long press delete
   function handleLongPressDelete() {
+    // Only allow deletion of own messages
+    if (currentLongPressMessage.senderId !== currentUser.uid) {
+      showBeautifulAlert("Permission Denied", "You can only delete your own messages.");
+      longPressIndicator.style.display = 'none';
+      return;
+    }
+    
     showDeleteOptions(currentLongPressMessage);
     longPressIndicator.style.display = 'none';
   }
   
   // Toggle message selection
   function toggleMessageSelection(messageId) {
+    // Only allow selection of own messages
+    const message = messages.find(m => m.id === messageId);
+    if (message && message.senderId !== currentUser.uid) return;
+    
     const index = selectedMessages.indexOf(messageId);
     if (index === -1) {
       selectedMessages.push(messageId);
@@ -1286,8 +1330,12 @@
     try {
       const batch = db.batch();
       selectedMessages.forEach(msgId => {
-        const msgRef = db.collection('chats').doc(chatId).collection('messages').doc(msgId);
-        batch.update(msgRef, { deleted: true });
+        // Only delete own messages
+        const message = messages.find(m => m.id === msgId);
+        if (message && message.senderId === currentUser.uid) {
+          const msgRef = db.collection('chats').doc(chatId).collection('messages').doc(msgId);
+          batch.update(msgRef, { deleted: true });
+        }
       });
       
       await batch.commit();
@@ -1317,7 +1365,7 @@
       }
     });
     
-    // Send typing indicator when user is typing
+        // Send typing indicator when user is typing
     messageInput.addEventListener('input', () => {
       if (!isTyping) {
         isTyping = true;
