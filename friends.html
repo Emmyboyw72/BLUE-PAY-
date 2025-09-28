@@ -20,6 +20,7 @@
       --border-gray: #e0e6ed;
       --bg-light: #fafbff;
       --red-badge: #ea4335;
+      --green-seen: #07bc0c;
     }
 
     * {
@@ -39,7 +40,7 @@
       overflow-x: hidden;
     }
 
-    /* Elegant Header */
+    /* Header with Back Button */
     .header {
       background: linear-gradient(120deg, var(--blue-primary), var(--blue-dark));
       color: white;
@@ -49,20 +50,40 @@
       z-index: 100;
       box-shadow: 0 4px 20px rgba(26, 115, 232, 0.22);
       display: flex;
-      justify-content: center;
       align-items: center;
+    }
+
+    .back-btn {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 24px;
+      margin-right: 16px;
+      cursor: pointer;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+    }
+
+    .back-btn:hover {
+      background: rgba(255,255,255,0.2);
     }
 
     .header h1 {
       font-family: 'Montserrat', sans-serif;
       font-weight: 800;
-      font-size: 2.1rem;
+      font-size: 1.8rem;
       font-style: italic;
       letter-spacing: -0.8px;
       background: linear-gradient(to right, #ffffff, #e0f0ff);
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
+      flex: 1;
+      text-align: center;
     }
 
     .container {
@@ -71,13 +92,13 @@
       margin: 0 auto;
     }
 
-    /* BluePay Channel Card */
+    /* BluePay Channel Card - Smaller */
     .channel-card {
       background: white;
-      border-radius: 20px;
-      padding: 22px;
-      margin-bottom: 26px;
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.07);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
       border: 1px solid var(--border-gray);
       cursor: pointer;
       transition: all 0.3s;
@@ -91,70 +112,70 @@
       top: 0;
       left: 0;
       height: 100%;
-      width: 5px;
+      width: 4px;
       background: var(--blue-primary);
     }
 
     .channel-card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 10px 25px rgba(26, 115, 232, 0.18);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(26, 115, 232, 0.15);
     }
 
     .channel-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 14px;
+      margin-bottom: 10px;
     }
 
     .channel-title {
       font-family: 'Montserrat', sans-serif;
       font-weight: 700;
-      font-size: 1.5rem;
+      font-size: 1.3rem;
       color: var(--blue-primary);
     }
 
     .followers-badge {
       background: linear-gradient(135deg, var(--blue-primary), #4285f4);
       color: white;
-      padding: 5px 14px;
-      border-radius: 30px;
+      padding: 4px 12px;
+      border-radius: 20px;
       font-weight: 600;
-      font-size: 0.92rem;
+      font-size: 0.85rem;
     }
 
     .last-message {
       color: #5f6368;
-      font-size: 0.95rem;
-      line-height: 1.5;
-      margin-top: 12px;
-      padding-top: 12px;
+      font-size: 0.9rem;
+      line-height: 1.4;
+      margin-top: 8px;
+      padding-top: 8px;
       border-top: 1px solid var(--border-gray);
     }
 
-    /* Friend Item */
+    /* Friend Item - Smaller */
     .friend-item {
       display: flex;
-      align-items: flex-start;
-      padding: 18px;
+      align-items: center;
+      padding: 14px;
       background: white;
-      border-radius: 18px;
-      margin-bottom: 18px;
-      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+      border-radius: 14px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
       cursor: pointer;
       transition: all 0.25s;
-      border-left: 4px solid transparent;
+      border-left: 3px solid transparent;
     }
 
     .friend-item:hover {
       background: var(--blue-light);
       border-left-color: var(--blue-primary);
-      transform: translateX(4px);
+      transform: translateX(3px);
     }
 
     .avatar {
-      width: 52px;
-      height: 52px;
+      width: 44px;
+      height: 44px;
       border-radius: 50%;
       background: linear-gradient(135deg, var(--blue-primary), var(--blue-dark));
       display: flex;
@@ -162,10 +183,10 @@
       justify-content: center;
       color: white;
       font-weight: bold;
-      font-size: 1.2rem;
-      margin-right: 18px;
+      font-size: 1rem;
+      margin-right: 14px;
       flex-shrink: 0;
-      box-shadow: 0 3px 8px rgba(26, 115, 232, 0.25);
+      box-shadow: 0 2px 6px rgba(26, 115, 232, 0.2);
     }
 
     .friend-info {
@@ -175,17 +196,17 @@
 
     .friend-name {
       font-weight: 600;
-      font-size: 1.15rem;
-      margin-bottom: 4px;
+      font-size: 1.05rem;
+      margin-bottom: 2px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
     .friend-email {
-      font-size: 0.88rem;
+      font-size: 0.82rem;
       color: #5f6368;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
       font-family: 'Inter', monospace;
     }
 
@@ -193,55 +214,55 @@
       display: inline-block;
       background: rgba(26, 115, 232, 0.12);
       color: var(--blue-primary);
-      padding: 3px 10px;
-      border-radius: 12px;
-      font-size: 0.82rem;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 0.78rem;
       font-weight: 600;
     }
 
     .message-preview {
       color: #5f6368;
-      font-size: 0.92rem;
-      line-height: 1.4;
-      margin-top: 8px;
+      font-size: 0.88rem;
+      line-height: 1.3;
+      margin-top: 6px;
       display: -webkit-box;
-      -webkit-line-clamp: 2;
+      -webkit-line-clamp: 1;
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
 
     .message-time {
-      font-size: 0.78rem;
+      font-size: 0.74rem;
       color: #888;
-      margin-top: 4px;
+      margin-top: 3px;
     }
 
     .message-badge {
       background: var(--red-badge);
       color: white;
-      width: 26px;
-      height: 26px;
+      width: 22px;
+      height: 22px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       font-weight: bold;
-      margin-left: 14px;
+      margin-left: 12px;
       flex-shrink: 0;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
     }
 
     /* Empty State */
     .empty-state {
       text-align: center;
-      padding: 50px 20px;
+      padding: 40px 20px;
       color: #777;
     }
 
     .empty-state h3 {
       color: var(--blue-primary);
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
 
     /* Loading Screen */
@@ -261,81 +282,118 @@
     }
 
     .loader {
-      width: 44px;
-      height: 44px;
-      border: 4px solid rgba(26,115,232,0.2);
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(26,115,232,0.2);
       border-top-color: var(--blue-primary);
       border-radius: 50%;
       animation: spin 1s linear infinite;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
 
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
 
-    /* Beautiful Alert Styles */
+    /* Beautiful Alert Styles - Blue/White Theme */
     .alert-overlay {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.55);
+      background: rgba(26, 115, 232, 0.15);
       display: flex;
       justify-content: center;
       align-items: center;
       z-index: 1000;
-      backdrop-filter: blur(6px);
+      backdrop-filter: blur(8px);
     }
 
     .alert {
       background: white;
-      border-radius: 24px;
-      padding: 40px;
+      border-radius: 20px;
+      padding: 32px;
       width: 90%;
-      max-width: 500px;
+      max-width: 480px;
       text-align: center;
-      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
-      border: 1px solid rgba(26, 115, 232, 0.15);
+      box-shadow: 0 12px 40px rgba(26, 115, 232, 0.25);
+      border: 2px solid var(--blue-light);
     }
 
     .alert h2 {
       color: var(--blue-primary);
-      margin-bottom: 20px;
+      margin-bottom: 18px;
       font-family: 'Montserrat', sans-serif;
       font-weight: 800;
-      font-size: 1.7rem;
+      font-size: 1.6rem;
     }
 
     .alert p {
-      margin-bottom: 28px;
-      line-height: 1.6;
+      margin-bottom: 24px;
+      line-height: 1.5;
       color: #444;
-      font-size: 1.05rem;
+      font-size: 1rem;
     }
 
     .alert-button {
       background: linear-gradient(135deg, var(--blue-primary), var(--blue-dark));
       color: white;
       border: none;
-      padding: 14px 32px;
-      border-radius: 14px;
-      font-size: 1.05rem;
+      padding: 12px 28px;
+      border-radius: 12px;
+      font-size: 1rem;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s;
     }
 
     .alert-button:hover {
-      transform: scale(1.03);
-      box-shadow: 0 5px 15px rgba(26, 115, 232, 0.4);
+      transform: scale(1.02);
+      box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3);
+    }
+
+    /* Typing Indicator */
+    .typing-indicator {
+      display: flex;
+      align-items: center;
+      font-size: 0.85rem;
+      color: #666;
+      margin-top: 4px;
+    }
+
+    .typing-dots {
+      display: flex;
+      margin-left: 6px;
+    }
+
+    .typing-dot {
+      width: 6px;
+      height: 6px;
+      background: #666;
+      border-radius: 50%;
+      margin: 0 2px;
+      animation: typing 1.4s infinite;
+    }
+
+    .typing-dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes typing {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-5px); }
     }
   </style>
 </head>
 <body>
   <div class="header">
-    <h1>BluePay</h1>
+    <button class="back-btn" id="backBtn">←</button>
+    <h1>Friends</h1>
   </div>
 
   <div class="container" id="friendsContainer">
@@ -362,6 +420,7 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
     const ADMIN_EMAIL = "bluepay863@gmail.com";
+    const BASE_FOLLOWERS = 500; // Base followers for channel
 
     let currentUser = null;
 
@@ -384,7 +443,7 @@
       if (el) el.remove();
     }
 
-    // 🎨 Beautiful Alert
+    // 🎨 Beautiful Alert - Blue/White Theme
     function showBeautifulAlert(title, message, buttonText = "OK", callback = null) {
       const overlay = document.createElement('div');
       overlay.className = 'alert-overlay';
@@ -413,23 +472,76 @@
     }
 
     // 🖱️ Navigation
+    function goToDashboard() {
+      window.location.href = 'dashboard.html';
+    }
+
     function goToChannel() {
       window.location.href = 'channel.html';
     }
 
     function goToMessenger(uid) {
+      // Mark messages as read when opening chat
+      markMessagesAsRead(uid);
       window.location.href = `messenger.html?to=${uid}`;
+    }
+
+    // Mark messages as read
+    async function markMessagesAsRead(recipientId) {
+      try {
+        const chatId = [currentUser.uid, recipientId].sort().join('_');
+        const messagesRef = db.collection('chats').doc(chatId).collection('messages');
+        
+        // Get unread messages
+        const unreadMessages = await messagesRef
+          .where('senderId', '==', recipientId)
+          .where('readBy', 'array-contains', currentUser.uid)
+          .get();
+        
+        // Actually, we need to mark as read - let's update messages where readBy doesn't contain current user
+        const allMessages = await messagesRef
+          .where('senderId', '==', recipientId)
+          .get();
+        
+        const batch = db.batch();
+        allMessages.forEach(doc => {
+          const data = doc.data();
+          if (!data.readBy || !data.readBy.includes(currentUser.uid)) {
+            batch.update(doc.ref, {
+              readBy: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
+            });
+          }
+        });
+        
+        await batch.commit();
+      } catch (error) {
+        console.error("Error marking messages as read:", error);
+      }
     }
 
     // Format timestamp
     function formatTime(timestamp) {
       if (!timestamp) return "";
-      const date = new Date(timestamp.seconds * 1000);
+      const date = new Date(timestamp.seconds ? timestamp.seconds * 1000 : timestamp);
       return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
 
+    // Count unread messages
+    function countUnreadMessages(lastMessage, currentUserUid) {
+      if (!lastMessage || !lastMessage.senderId || lastMessage.senderId === currentUserUid) {
+        return 0;
+      }
+      
+      // If message is not read by current user
+      if (!lastMessage.readBy || !lastMessage.readBy.includes(currentUserUid)) {
+        return 1;
+      }
+      
+      return 0;
+    }
+
     // 🎨 Render UI
-    function render(friendsWithMessages, followerCount, isAdmin) {
+    function render(friendsWithMessages, totalFollowers, isAdmin) {
       const container = document.getElementById('friendsContainer');
       container.innerHTML = '';
 
@@ -439,7 +551,7 @@
       channelCard.innerHTML = `
         <div class="channel-header">
           <div class="channel-title">BluePay Channel</div>
-          <div class="followers-badge">${followerCount} followers</div>
+          <div class="followers-badge">${totalFollowers} followers</div>
         </div>
         <div class="last-message">💬 Official announcements and updates</div>
       `;
@@ -447,11 +559,11 @@
       container.appendChild(channelCard);
 
       // 👥 Friends List
-      if (friendsWithMessages.length === 0) {
+      if (friendsWithMessages.length === 0 && !isAdmin) {
         container.innerHTML += `
           <div class="empty-state">
-            <h3>Your network is empty</h3>
-            <p>New users will appear here once they join</p>
+            <h3>Connect with BluePay Admin</h3>
+            <p>Start chatting with our support team</p>
           </div>
         `;
         return;
@@ -466,9 +578,12 @@
 
       friendsWithMessages.forEach(f => {
         const isVendor = f.email === ADMIN_EMAIL;
-        const displayName = isVendor ? "BluePay Vendor" : f.name;
-        const role = isVendor ? "Vendor" : "";
+        const displayName = isVendor ? "BluePay Admin" : f.name;
+        const role = isVendor ? "Admin" : "";
         const hasMessage = f.lastMessage && f.lastMessage.text;
+        const unreadCount = countUnreadMessages(f.lastMessage, currentUser.uid);
+        const isTyping = f.isTyping && f.typingTimestamp && 
+          (new Date().getTime() - f.typingTimestamp.toDate().getTime()) < 5000;
 
         const item = document.createElement('div');
         item.className = 'friend-item';
@@ -478,70 +593,134 @@
             <div class="friend-name">${displayName}</div>
             ${isAdmin && !isVendor ? `<div class="friend-email">${f.email}</div>` : ''}
             ${role ? `<div class="friend-role">${role}</div>` : ''}
-            ${hasMessage ? `
+            ${isTyping ? `
+              <div class="typing-indicator">
+                typing
+                <div class="typing-dots">
+                  <div class="typing-dot"></div>
+                  <div class="typing-dot"></div>
+                  <div class="typing-dot"></div>
+                </div>
+              </div>
+            ` : hasMessage ? `
               <div class="message-preview">${f.lastMessage.text}</div>
               <div class="message-time">${formatTime(f.lastMessage.timestamp)}</div>
             ` : ''}
           </div>
-          ${hasMessage ? `<div class="message-badge">!</div>` : ''}
+          ${unreadCount > 0 ? `<div class="message-badge">${unreadCount}</div>` : ''}
         `;
         item.onclick = () => goToMessenger(f.uid);
         container.appendChild(item);
       });
     }
 
-    // 🔄 Load Friends with Last Messages
+    // 🔄 Load Friends with Last Messages and Typing Status
     async function loadFriendsWithMessages() {
       try {
         // Get all users
         const usersSnap = await db.collection('users').get();
         const users = {};
-        let followers = 0;
+        let realUserCount = 0;
 
         usersSnap.forEach(doc => {
           const u = doc.data();
           if (u.uid === currentUser.uid) return;
           users[u.uid] = u;
-          followers++;
+          realUserCount++;
         });
 
-        // Get last message for each user chat
+        // Calculate total followers (base 500 + real users)
+        const totalFollowers = BASE_FOLLOWERS + realUserCount;
+
+        // Get last message and typing status for each user chat
         const friendsWithMessages = [];
-        const chatIds = Object.keys(users).map(uid => {
-          const ids = [currentUser.uid, uid].sort();
-          return ids.join('_');
-        });
-
-        // Load last message for each chat
-        const promises = Object.keys(users).map(async (uid) => {
-          const chatId = [currentUser.uid, uid].sort().join('_');
-          const messagesSnap = await db.collection('chats').doc(chatId).collection('messages')
-            .orderBy('timestamp', 'desc')
-            .limit(1)
-            .get();
-          
-          let lastMessage = null;
-          if (!messagesSnap.empty) {
-            lastMessage = messagesSnap.docs[0].data();
-          }
-          
-          return {
-            ...users[uid],
-            lastMessage: lastMessage
-          };
-        });
-
-        const results = await Promise.all(promises);
         
-        // Admin sees all users, regular users see only vendor
+        // Admin sees all users, regular users see only admin
         if (currentUser.email === ADMIN_EMAIL) {
-          results.forEach(user => friendsWithMessages.push(user));
+          // Admin sees all users
+          const promises = Object.keys(users).map(async (uid) => {
+            const chatId = [currentUser.uid, uid].sort().join('_');
+            
+            // Get last message
+            const messagesSnap = await db.collection('chats').doc(chatId).collection('messages')
+              .orderBy('timestamp', 'desc')
+              .limit(1)
+              .get();
+            
+            let lastMessage = null;
+            if (!messagesSnap.empty) {
+              lastMessage = messagesSnap.docs[0].data();
+            }
+            
+            // Check typing status
+            let isTyping = false;
+            let typingTimestamp = null;
+            try {
+              const typingDoc = await db.collection('chats').doc(chatId).collection('typing').doc(uid).get();
+              if (typingDoc.exists) {
+                const typingData = typingDoc.data();
+                if (typingData.isTyping && typingData.timestamp) {
+                  isTyping = true;
+                  typingTimestamp = typingData.timestamp;
+                }
+              }
+            } catch (e) {
+              // Ignore typing errors
+            }
+            
+            return {
+              ...users[uid],
+              lastMessage: lastMessage,
+              isTyping: isTyping,
+              typingTimestamp: typingTimestamp
+            };
+          });
+
+          const results = await Promise.all(promises);
+          friendsWithMessages.push(...results);
         } else {
-          const vendor = results.find(u => u.email === ADMIN_EMAIL);
-          if (vendor) friendsWithMessages.push(vendor);
+          // Regular users see only admin
+          const adminUser = Object.values(users).find(u => u.email === ADMIN_EMAIL);
+          if (adminUser) {
+            const chatId = [currentUser.uid, adminUser.uid].sort().join('_');
+            
+            // Get last message
+            const messagesSnap = await db.collection('chats').doc(chatId).collection('messages')
+              .orderBy('timestamp', 'desc')
+              .limit(1)
+              .get();
+            
+            let lastMessage = null;
+            if (!messagesSnap.empty) {
+              lastMessage = messagesSnap.docs[0].data();
+            }
+            
+            // Check typing status
+            let isTyping = false;
+            let typingTimestamp = null;
+            try {
+              const typingDoc = await db.collection('chats').doc(chatId).collection('typing').doc(adminUser.uid).get();
+                 if (typingDoc.exists) {
+                const typingData = typingDoc.data();
+                if (typingData.isTyping && typingData.timestamp) {
+                  isTyping = true;
+                  typingTimestamp = typingData.timestamp;
+                }
+              }
+            } catch (e) {
+              // Ignore typing errors
+            }
+            
+            friendsWithMessages.push({
+              ...adminUser,
+              lastMessage: lastMessage,
+              isTyping: isTyping,
+              typingTimestamp: typingTimestamp
+            });
+          }
         }
 
-        render(friendsWithMessages, followers, currentUser.email === ADMIN_EMAIL);
+        render(friendsWithMessages, totalFollowers, currentUser.email === ADMIN_EMAIL);
       } catch (e) {
         console.error("Error loading friends:", e);
         showBeautifulAlert("Error", "Failed to load friends. Please refresh.");
@@ -556,24 +735,32 @@
       }
 
       currentUser = { uid: user.uid, email: user.email };
+      
+      // Back button event
+      document.getElementById('backBtn').addEventListener('click', goToDashboard);
+      
       showLoading();
       await loadFriendsWithMessages();
       hideLoading();
 
-      // 🔔 Real-time updates
+      // 🔔 Real-time updates for users
       const unsubUsers = db.collection('users')
         .onSnapshot(() => loadFriendsWithMessages());
       
       // Listen for new messages
-      const unsubChats = db.collectionGroup('messages')
-        .where('recipientId', '==', currentUser.uid)
+      const unsubMessages = db.collectionGroup('messages')
+        .onSnapshot(() => loadFriendsWithMessages());
+      
+      // Listen for typing indicators
+      const unsubTyping = db.collectionGroup('typing')
         .onSnapshot(() => loadFriendsWithMessages());
       
       window.addEventListener('beforeunload', () => {
         unsubUsers();
-        unsubChats();
+        unsubMessages();
+        unsubTyping();
       });
     });
   </script>
 </body>
-</html>
+</html> 
